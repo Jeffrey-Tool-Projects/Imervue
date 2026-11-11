@@ -1,6 +1,6 @@
 # Imervue 架構全覽 (architecture_explore)
 
-> 產出日期：2026-08-03（全樹掃描）· 最後同步：2026-11-04 · 對應提交見 `git log -1 -- architecture_explore.md` · 分支 `dev` · 版本 `1.0.100`
+> 產出日期：2026-08-03（全樹掃描）· 最後同步：2026-11-11 · 對應提交見 `git log -1 -- architecture_explore.md` · 分支 `dev` · 版本 `1.0.102`
 >
 > 本文件是一次「全樹掃描」的結果：以 AST 逐檔擷取模組 docstring、類別與公開函式，
 > 再交叉比對實際程式碼撰寫而成。散文用繁體中文，模組名 / 路徑 / 型別一律保留英文。
@@ -29,8 +29,8 @@
    - [6.12 `Imervue/gui/`](#612-imervuegui)
    - [6.13 `Imervue/menu/`](#613-imervuemenu)
    - [6.14 `Imervue/paint/`](#614-imervuepaint)
-   - [6.15 `Imervue/puppet/`](#615-imervuepuppet)
-   - [6.16 `Imervue/desktop_pet/`](#616-imervuedesktop_pet)
+   - [6.15 外部 `rigora.puppet`](#615-外部-rigorapuppet)
+   - [6.16 外部 `rigora.desktop_pet`](#616-外部-rigoradesktop_pet)
    - [6.17 `Imervue/plugin/`](#617-imervueplugin)
    - [6.18 `Imervue/mcp_server/`](#618-imervuemcp_server)
 7. [`plugins/` 外掛實作](#7-plugins-外掛實作)
@@ -51,8 +51,8 @@ Imervue = **Image + Immerse + View**。以 PySide6 + OpenGL 打造的桌面應�
 | GPU 加速的圖片瀏覽器 / 相片庫 | Tab 0 `Imervue` | `gpu_image_view/`、`library/` |
 | 非破壞性顯影（Lightroom 式 recipe） | Tab 1 `Modify` | `image/recipe*.py`、`gui/develop_panel.py` |
 | 全功能點陣繪圖 / 漫畫工作區 | Tab 2 `Paint` | `paint/` |
-| 2D 骨架人偶動畫（Live2D Cubism 相容） | Tab 3 `Puppet` | `puppet/` |
-| 桌面寵物懸浮視窗 | Tab 4 `Desktop Pet` | `desktop_pet/` |
+| 2D 骨架人偶動畫（Live2D Cubism 相容） | Tab 3 `Puppet` | 外部 `rigora.puppet` |
+| 桌面寵物懸浮視窗 | Tab 4 `Desktop Pet` | 外部 `rigora.desktop_pet` |
 
 另有兩條**非 GUI** 的對外介面：`Imervue/cli.py`（headless 批次 CLI）與
 `Imervue/mcp_server/`（Model Context Protocol server，把 58 個影像工具暴露給 LLM 代理）。
@@ -66,32 +66,30 @@ rawpy、imageio(+ffmpeg)、defusedxml、watchdog。所有重量級 / ML 相依�
 
 | 區域 | 檔案數 | 行數 |
 | --- | ---: | ---: |
-| `tests/` | 1,055 | 192,752 |
+| `tests/` | 917 | 166,532 |
 | `Imervue/paint/`（含 `docks/`、`tools/`） | 235 | 44,967 |
-| `Imervue/gui/` | 253 | 39,440 |
-| `Imervue/puppet/` | 122 | 17,266 |
+| `Imervue/gui/` | 253 | 39,481 |
 | `Imervue/image/` | 154 | 16,107 |
 | `Imervue/gpu_image_view/`（含 `actions/`、`images/`） | 92 | 14,215 |
-| `Imervue/multi_language/` | 8 | 16,273 |
-| `Imervue/desktop_pet/` | 39 | 7,439 |
-| `Imervue/mcp_server/` | 22 | 4,998 |
+| `Imervue/multi_language/` | 8 | 16,278 |
+| `Imervue/mcp_server/` | 22 | 4,952 |
 | `Imervue/library/` | 51 | 5,274 |
 | `Imervue/menu/` | 25 | 4,051 |
-| `Imervue/` 根層 | 17 | 2,051 |
+| `Imervue/` 根層 | 17 | 2,055 |
 | `Imervue/plugin/` | 23 | 3,337 |
-| `Imervue/system/` | 34 | 3,606 |
+| `Imervue/system/` | 35 | 3,660 |
 | `Imervue/export/` | 8 | 1,036 |
 | `Imervue/user_settings/` | 10 | 1,253 |
 | `Imervue/sessions/` + `macros/` + `external/` | 8 | 800 |
-| `plugins/`（19 個外掛） | 94 | 16,697 |
+| `plugins/`（19 個外掛） | 94 | 16,727 |
 | `scripts/`（開發與發佈工具） | 12 | 1,904 |
-| **總計** | **2,262** | **393,471** |
+| **總計** | **1,964** | **342,629** |
 
-其中 `Imervue/` 套件本身 1,101 檔 / 182,118 行。
+其中 `Imervue/` 套件本身 941 檔 / 157,466 行。
 
-測試碼與產品碼比約 **0.97 : 1**（192,752 vs 198,815 行，產品碼含 `plugins/`）。
+測試碼與產品碼比約 **0.96 : 1**（166,532 vs 174,193 行，產品碼含 `plugins/`）。
 
-> 統計以 `CLAUDE.md`「Architecture Map」的方式掃描各區域 Python 檔案，排除 `__pycache__`；不包含 `.audit/`、虛擬環境或建置產物。
+> 掃描各區域 Python 檔案並排除 `__pycache__`；不含外部 Rigora、`.audit/`、虛擬環境或建置產物。
 
 ---
 
@@ -186,7 +184,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 ├──────────────────────────────────────────────────────────┤
 │ gui/             Qt 對話框外殼（滑桿、預覽、背景 worker）  │
 │ gpu_image_view/  OpenGL widget + 協作者                    │
-│ paint/ puppet/ desktop_pet/  各自的工作區                  │
+│ paint/ + 外部 Rigora       各自的工作區                  │
 ├──────────────────────────────────────────────────────────┤
 │ image/  library/  export/    純邏輯：NumPy / Pillow / sqlite│
 │                              無 Qt import，可在 worker 執行 │
@@ -219,7 +217,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | 模組 | 行數 | 功用 |
 | --- | ---: | --- |
 | `__main__.py` | 131 | `main()`：先設定 logging 與 excepthook，再 import Qt；CLI 參數解析、凍結環境修補（僅 Windows 預設 nt backend）、QApplication 建立、主視窗啟動 |
-| `Imervue_main_window.py` | 493 | `ImervueMainWindow`：分頁協調者（3 個核心分頁 + 2 個選用分頁）（建構與啟動順序、服務／選單、What's New、剪貼簿註解、關閉確認後明確 shutdown Puppet／Desktop Pet 工作區、最後一個視窗的收尾）；其餘職責來自 `gui/main_window_*.py` 的十二個 mixin |
+| `Imervue_main_window.py` | 497 | `ImervueMainWindow`：分頁協調者（3 個核心分頁 + 2 個選用分頁）（建構與啟動順序、服務／選單、What's New、剪貼簿註解、關閉確認後明確 shutdown Puppet／Desktop Pet 工作區、最後一個視窗的收尾）；其餘職責來自 `gui/main_window_*.py` 的十二個 mixin |
 | `cli.py` | 199 | Headless CLI 入口、原生／MCP 命令分派與 list-ops；保留公開函式與共用命令表的匯入路徑。 |
 | `cli_paths.py` | 70 | 輸入影像集合、RAW 輸出副檔名、目的路徑與共用 parent-traversal 驗證；保留各參數診斷。 |
 | `cli_native.py` | 105 | 原生影像 writer adapters：保留 upright/sRGB/high-bit-depth 解碼及各編碼器選項。 |
@@ -249,6 +247,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | `log_setup.py` | 100 | 集中式 logging 設定：`setup_logging()`（可重複呼叫；`app_dir()` 不可寫時退到使用者目錄；凍結時不掛 stderr handler）與 `install_exception_logging()` |
 | `macos_bundle.py` | 74 | macOS `.app` Info.plist 文件型別關聯；每種相機 RAW 對到 `public.camera-raw-image` |
 | `onboarding.py` | 81 | 首次啟動導覽步驟註冊表 |
+| `rigora_integration.py` | 54 | 選用 Rigora 套件的宿主橋接：初始化設定、一次匯入舊偏好、同步語言、連接背景工作登錄及關閉時儲存；缺少套件時提供安裝提示 |
 | `release_notes.py` | 111 | What's-New 對話框的版本說明資料 |
 | `themes.py` | 246 | 內建配色主題：`modern_dark`（預設）、`modern_light`、`default`（系統外觀）與四個只有 QSS 的舊主題；`apply_theme` 對 modern 主題套 Fusion + 調色盤 + QSS，回到系統外觀時還原啟動時的 style 與調色盤；`offer_modern_theme` 把仍在系統外觀的設定檔一次性換成預設主題；`theme_label` 取翻譯後的名稱 |
 | `modern_theme.py` | 237 | Modern Dark / Modern Light：`ThemeColours` 色票、`build_palette()`（Fusion 用的 `QPalette`，停用文字用 muted）、`build_stylesheet()`（只塑形外框：分頁、dock 標題、捲軸、輸入框、按鈕；長度用 `em` 所以跟著 UI 縮放；刻意不碰 QComboBox / QSpinBox 以保留箭頭） |
@@ -293,11 +292,11 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | 模組 | 行數 | 功用 |
 | --- | ---: | --- |
 | `language_wrapper.py` | 140 | 單例 `language_wrapper`（外掛字串進來前先經 `translation_validation` 檢查、記錄問題，空字串或 `{placeholder}` 與英文不符的丟掉，改顯示內建文字）。內建 5 語言；`register_language()` 供外掛新增語言（重複註冊就地更新同一個字典），`merge_translations()` 供外掛補鍵（不覆寫既有鍵） |
-| `english.py` | 3,219 | 英文字典（**正規來源**，其他語言以它為鍵集基準） |
-| `traditional_chinese.py` | 3,178 | 繁體中文 |
-| `chinese.py` | 3,178 | 簡體中文 |
-| `japanese.py` | 3,194 | 日文 |
-| `korean.py` | 3,193 | 韓文 |
+| `english.py` | 3223 | 英文字典（**正規來源**，其他語言以它為鍵集基準） |
+| `traditional_chinese.py` | 3182 | 繁體中文 |
+| `chinese.py` | 3182 | 簡體中文 |
+| `japanese.py` | 3198 | 日文 |
+| `korean.py` | 3197 | 韓文 |
 | `translation_validation.py` | 156 | 字典進入 `LanguageWrapper` 前的驗證（缺鍵 / 空值 / placeholder；`register_language` 與 `merge_translations` 都會跑） |
 
 > 第 6 個語言（西班牙文）以 `plugins/spanish_translation/` 形式提供，示範外掛語言註冊流程。
@@ -688,9 +687,9 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `main_window_status.py` | 131 | `MainWindowStatusMixin`：狀態列訊息、掃描進度條、圖片資訊標籤、記憶體壓力指示器的資料來源與清快取 |
 | `main_window_workspaces.py` | 102 | `MainWindowWorkspacesMixin`：主分頁切換（Imervue／Modify／Paint；資料夾分頁快捷鍵只在 Imervue 分頁啟用）、`choose_paint_handoff` 經 `paint_handoff` 選原圖或顯影結果、把指定（預設目前）圖片解碼成新的 Paint 文件、Modify／Paint 主分頁列的左右鍵換圖（`eventFilter`） |
 | `main_window_navigation.py` | 134 | `MainWindowNavigationMixin`：檔案樹／breadcrumb 共用的 `navigate_to_path`（樹根一律經 `tree.set_root_path`）、啟動時開上次資料夾（含還原 deep zoom）、目錄載入後更新樹、整個視窗的拖放（只收資料夾與可檢視副檔名） |
-| `main_window_layout.py` | 408 | `MainWindowLayoutMixin`：主視窗建構子呼叫的 `_build_*`（檔案樹與其上方的搜尋／排序控制、檢視器欄（檔名列 `_filename_row` 兼放 deep zoom 面板切換鈕，`_build_deep_zoom_chrome`）、圖片分頁列、視圖堆疊、工作區分頁、狀態列與常駐工作指示器 `job_indicator`）；選用分頁 Puppet／Desktop Pet 只在開著時加一個空頁，第一次打開才建工作區（`_build_puppet_workspace`、`_build_pet_workspace`，後者另建系統匣圖示並重接外掛的 pet hook；寵物設定為啟動時顯示就在啟動時建） |
+| `main_window_layout.py` | 412 | `MainWindowLayoutMixin`：主視窗建構子呼叫的 `_build_*`（檔案樹與其上方的搜尋／排序控制、檢視器欄（檔名列 `_filename_row` 兼放 deep zoom 面板切換鈕，`_build_deep_zoom_chrome`）、圖片分頁列、視圖堆疊、工作區分頁、狀態列與常駐工作指示器 `job_indicator`）；選用分頁 Puppet／Desktop Pet 只在開著時加一個空頁，第一次打開才建工作區（`_build_puppet_workspace`、`_build_pet_workspace`，後者另建系統匣圖示並重接外掛的 pet hook；寵物設定為啟動時顯示就在啟動時建） |
 | `main_window_docks.py` | 214 | `MainWindowDocksMixin`（存版面時劇院模式與 deep zoom 暫時藏起的 dock 先還原、套用／重設版面後重新收合）：Imervue 與 Modify 分頁各是一個巢狀 `QMainWindow`（`make_dock_host()`），側邊面板都是 dock（`add_dock()`，以固定 objectName 供 `saveState`）；版面存回設定（`browse_dock_state`、`modify_dock_state`）、`reset_panel_layout()`、給工作區預設用的 `dock_layout_states()` / `apply_dock_layout_states()`；`CanvasHost`：Modify 中央的提示文字 ↔ 畫布堆疊；純函式 `encode_dock_state()` / `decode_dock_state()` |
-| `optional_tabs.py` | 34 | 選用分頁的設定：`tab_enabled`／`set_tab_enabled`（`puppet_tab_enabled`、`desktop_pet_tab_enabled`，預設開、下次啟動生效）、`pet_shows_on_launch` |
+| `optional_tabs.py` | 54 | 選用分頁的設定：`tab_enabled`／`set_tab_enabled`（`puppet_tab_enabled`、`desktop_pet_tab_enabled`，預設開、下次啟動生效）、`pet_shows_on_launch` |
 | `main_window_browse.py` | 157 | `MainWindowBrowseMixin`：縮圖牆／清單切換、清單啟動、從 deep zoom 返回、縮圖尺寸與間距；`preview_search_result` 把檔案樹搜尋結果交給 `navigate_to_path`（檔案時切回檢視器）；`refetch_list_rows` 把磁碟上變了的路徑轉給清單檢視；`delete_list_selection` 走縮圖牆的 `delete_selected_tiles`（可復原、之後整批進回收筒），`undo_from_list` 執行檢視器的 undo 後重建清單；`escape_from_list`：清單裡的 Esc 先離開全螢幕，否則回縮圖牆；`mark_list_selection` 把選取列交給評分、最愛、挑片、色彩標籤的同一組函式（`targets=`） |
 | `annotation_models.py` | 183 | 註解資料模型（`Annotation`、`AnnotationProject` 的 dict／JSON 存讀、種類／筆刷／工具常數），無 Qt；保留 `bake`、`jitter_seed` 的匯入位置 |
 | `annotation_render.py` | 156 | **無 Qt 的 PIL 渲染路徑** `bake()`（可在 worker / 測試中使用）：先套馬賽克／模糊，再把框、橢圓、線、箭頭、自由手繪、文字疊到透明層合成 |
@@ -746,7 +745,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `query_search.py` | 41 | 查詢字串輸入 → 過濾縮圖牆 |
 | `photo_workflow_dialog.py` | 296 | 每視窗 modeless 搜尋→比較→挑片→既有顯影 preset→既有批次匯出；500 筆分頁、保留隱藏勾選／preset／回程，外部 DB 挑片同步，800px 來源比較 |
 | `background_jobs.py` | 159 | 跨視窗背景工作面板外殼：`job_registry()` 每個 QApplication 一份（存在 app 屬性）、`drain_background_jobs()`、`BackgroundJobsDialog`（取消／停止錄影、失敗重試、完整 JSON 報告、雙擊或「Open output」開啟成功輸出、開啟所在資料夾）與 `open_background_jobs()`；re-export `Job` / `JobRegistry` / `RetryFactory` |
-| `background_jobs_registry.py` | 157 | `Job` + `JobRegistry`：register 時 setParent(None) 持有執行緒直到 actual exit；`add_activity` 追蹤 GUI 持有的錄影 activity（取消即完成片段，完成訊號後才 settle）；100ms 輪詢 immutable summaries、cooperative cancel、failure-only 單次 retry、單張 completed results、Clear finished、結束時 drain |
+| `background_jobs_registry.py` | 174 | `Job` + `JobRegistry`：register 時 setParent(None) 持有執行緒直到 actual exit；`add_activity` 追蹤 GUI 持有的錄影 activity（取消即完成片段，完成訊號後才 settle）；100ms 輪詢 immutable summaries、cooperative cancel、failure-only 單次 retry、單張 completed results、Clear finished、結束時 drain |
 | `background_jobs_rows.py` | 105 | `JobRowsMixin`：工作摘要列（未 settle 的 terminal 顯示 finishing）、選取工作的 bounded 500 筆明細列（重建後保留選取的輸出列）與按鈕啟用狀態（activity 顯示 Stop） |
 | `job_indicator.py` | 40 | 常駐狀態列工作／失敗數量入口；開啟共享工作記錄與輸出結果 |
 | `_apply_save.py` | 229 | **共用的「載入 → 套用 → 另存副本」骨架**（`EffectWorker(QThread)`），約 30 個單圖工具對話框與外掛的 `ToolDialogMixin` 共用；`load_rgba()` 回傳檢視器看到的陣列（RAW 全尺寸顯像、sRGB、依 EXIF 轉正）；`output_path(s)` 給出原圖旁不存在的檔名（`photo_clahe.png` → `_1` …，一組共用編號，由 `system/free_names` 挑名），工具再跑一次不會蓋掉上次結果；`finalize_worker()` 在 custom done 提前送達時 passive 背景退場，保留 owner／actual worker lifetime；`show_toast()` / `notify_saved()`（成功字串可換鍵）回報結果（外掛也 import，見 architecture.md §6） |
@@ -1022,193 +1021,17 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 `retouch.py`(127) 漸層（前景→背景或存下的多色標漸層）/塗抹；轉出模糊/加深減淡/海綿 ·
 `retouch_dab.py`(156) 模糊/加深減淡/海綿：共用 `_DabStrokeTool` 的按下/拖曳/放開 dab 筆觸協定與 damage，各工具只提供 `_dab`
 
-### 6.15 `Imervue/puppet/`
+### 6.15 外部 `rigora.puppet`
 
-122 個檔、17,266 行。2D 骨架人偶動畫，Live2D Cubism 相容。原本是外掛，因為核心路徑
-（GL / mesh / 純 NumPy 變形）跑在預設相依上，所以收進主程式當內建分頁；唯一的重量級選用相依
-是 Cubism Native SDK DLL，缺了會優雅降級。
+Puppet 文件、Cubism 匯入、變形與物理、畫布、直播輸入、錄影及編輯器均由外部 Rigora 套件提供。Imervue 不再保留本地實作。GUI、CLI 與 MCP 入口維持原名；未安裝 Rigora 時顯示安裝提示。安裝方式見 README，Rigora 尚未公開發行套件。
 
-`workspace_ui.py` 提供起始卡片、dock 捲動與首次版面尺寸；直播開關集中於工具列選單。
+`Imervue/system/rigora_integration.py` 負責初始化 Rigora 自有設定、首次匯入舊偏好、同步語言、接上 Imervue 工作登錄及關閉時寫入設定。Rigora 的五種內建翻譯、模型快取與設定檔均由自身管理，不再匯入 Imervue。
 
-#### 資料模型與 I/O
+Imeru 與桌面寵物腳本位於 `rigora/resources/examples/`，以 `rigora.system.app_paths.examples_dir()` 取得安裝位置。完整模組地圖與素材建置流程見 Rigora 的 `architecture.md` 與 `examples/puppet/`。
 
-| 模組 | 行數 | 功用 |
-| --- | ---: | --- |
-| `document.py` | 395 | `.puppet` v1 檔案格式的純 Python 資料模型（`Drawable` / `Deformer` / `Parameter` / `Motion` / `HitArea`） |
-| `document_io.py` | 96 | `.puppet` 公開檔案／記憶體讀寫入口、原子儲存與結構錯誤正規化；維持既有例外類別與版本常數匯入介面 |
-| `archive_container.py` | 70 | ZIP 成員組裝與總解壓大小限制；先寫未壓縮 `mimetype`，依原順序載入 manifest、貼圖、動畫與物理資料 |
-| `archive_members.py` | 71 | ZIP JSON／貼圖讀取、具名動作／表情參照驗證與 physics 成員載入；保留 manifest 順序與重複參照 |
-| `manifest_collections.py` | 31 | 必填與選填 manifest 集合的有序解析／編碼對照，集中欄位名稱與對應 codec |
-| `manifest_decode.py` | 47 | 格式版本驗證與 document 建構；保留必填陣列錯誤、選填集合空值、pose 與 display names 行為 |
-| `manifest_encode.py` | 40 | 穩定 JSON 欄位順序與空值省略規則，每個 manifest 帶 `$schema` |
-| `format_values.py` | 50 | 共用 `PuppetFormatError`、必填鍵／列表、參數名稱、座標／尺寸驗證及穩定 JSON 輸出 |
-| `drawable_codec.py` | 101 | Drawable 網格與 UV／三角形索引驗證、幾何與顯示屬性編解碼；組合曲線及頂點變形 codec |
-| `drawable_curves.py` | 95 | 透明度與乘色色彩曲線；共用 stop 欄位驗證，保留不同欄位的錯誤位置與數值轉換 |
-| `drawable_deformation.py` | 62 | 骨骼頂點權重及 morph 端點編解碼；端點共用浮點轉換，記憶體 tuple 與 JSON list 分開表示 |
-| `parameter_codec.py` | 81 | 單參數鍵值與多參數 blend 座標／deformer form 編解碼 |
-| `rig_codec.py` | 90 | Deformer、pose group、hit area 與 part 的結構及互動中繼資料編解碼 |
-| `motion_codec.py` | 85 | Motion track／segment 幾何、淡入淡出、音效與群組欄位編解碼 |
-| `expression_codec.py` | 33 | Expression parameter 與混合模式驗證、表情 JSON 輸出 |
-| `physics_codec.py` | 47 | Physics rig／particle／gravity 編解碼與物理 JSON 輸出 |
-| `format_schema.py` | 331 | `.puppet` v1 的四份 JSON Schema（draft 2020-12：puppet / motion / expression / physics，`$id` 是 `docs/schemas/` 在 `main` 上的 raw URL；`python -m Imervue.puppet.format_schema docs/schemas` 重產）與 `check_puppet_file`：schema → 載入器規則 → `validator` 的 rig 檢查（CLI `puppet-validate`、MCP `puppet_validate`） |
-| `schema_check.py` | 124 | 只涵蓋上述 schema 所用子集的 JSON Schema 驗證器（`$ref`、type、enum、const、properties、required、additionalProperties、items、min/maxItems、minimum/maximum、minLength、allOf、anyOf、if/then），不依賴第三方套件；與 `jsonschema` 對拍 7200 個變造檔判定一致 |
-| `cubism_import.py` | 150 | Live2D Cubism v3 匯入的公開入口：`CubismBundle`、`load_model3` 組裝 `.model3.json` 引用的檔案、`apply_bundle` 依名稱／id 去重合併進文件；轉出各子模組的載入器與 `CubismFormatError` |
-| `cubism_import_common.py` | 21 | `CubismFormatError` 與容忍 BOM 的 JSON 讀取（壞 JSON 轉成格式錯誤、缺檔拋 `FileNotFoundError`） |
-| `cubism_import_motion.py` | 166 | `.motion3.json`（扁平 segment 陣列 → linear / bezier / stepped / inverse-stepped，截斷與未知型別報錯）與 `.exp3.json`（Blend → 混合模式）匯入 |
-| `cubism_import_model.py` | 98 | `.model3.json` 條目讀取：引用的 motion（淡入淡出覆寫、音效路徑、群組）與 expression、參數群組、hit area |
-| `cubism_import_physics.py` | 102 | `.physics3.json` → `PhysicsRig`；Cubism 頂點係數對應到粒子的 spring / damping / mass |
-| `cubism_import_parts.py` | 78 | `.pose3.json` 互斥 part 群組（含 Link）與 `.cdi3.json` 顯示名稱匯入 |
-| `cubism_native_bridge.py` | 445 | `Live2DCubismCore.dll` 的 ctypes 綁定（官方 Cubism SDK for Native）；對齊的 moc 緩衝區先通過 `csmHasMocConsistency` 才能復活、初始化，失敗丟 `CubismBridgeError` |
-| `cubism_native_convert.py` | 228 | `.moc3` → `PuppetDocument` 轉換的公開入口：`cubism_to_puppet`（讀 manifest、載入 DLL 與 moc、可選存檔）、依序組裝文件、動作過少時補 `synth_*` 待機動作；轉出各子模組的名稱 |
-| `cubism_native_mesh.py` | 147 | 靜止姿態接線：Cubism 置中 Y 向上單位 → 像素的 `_CanvasTransform`、貼圖、drawable（UV 翻轉、遮罩、render order、混合模式）、參數 |
-| `cubism_native_morphs.py` | 207 | 取樣重建：逐參數掃到 min / max 產生 `vertex_morphs`（低於 epsilon 丟棄）、`IsVisible` 翻轉產生 `opacity_keys` 曲線，掃完還原靜止姿態 |
-| `cubism_native_motions.py` | 86 | manifest 引用的 motion（群組、淡入淡出、音效）與 `motions/` 下 manifest 漏列的孤兒 motion |
-| `cubism_native_bundle.py` | 122 | 組裝 `CubismBundle`：motion、expression（含 `exp/` 備援路徑）、physics、cdi 顯示名稱、hit area，壞檔記錄後略過，再 `apply_bundle` |
-| `psd_import.py` | 186 | PSD 多圖層 → `PuppetDocument` |
-| `auto_mesh.py` | 172 | 從單張 PNG 自動生成網格 |
-| `auto_rig.py` | 269 | 依圖層命名慣例自動推導 Cubism 式綁定：`auto_rig` 入口與眨眼、嘴型 viseme、頭部傾斜旋轉、頭髮擺動 warp + 物理鏈四條規則；轉出偵測函式 |
-| `auto_rig_detect.py` | 81 | 自動綁定的圖層名稱偵測（純 Python）：id 正規化（含 camelCase 拆分）、眼睛左右 / 開闔、嘴型母音、頭部（排除 forehead）、頭髮 |
-| `auto_rig_mutators.py` | 111 | 自動綁定共用的文件修改：取代式 `opacity_keys` 曲線、補參數與合併 key、唯一 deformer / physics id、drawable 群組邊界與中心 |
-| `standard_params.py` | 116 | Cubism 標準參數目錄 |
-| `requirements.py` | 75 | 選用相依清單 |
+### 6.16 外部 `rigora.desktop_pet`
 
-#### 執行期（變形 / 物理 / 取樣）
-
-| 模組 | 行數 | 功用 |
-| --- | ---: | --- |
-| `runtime.py` | 74 | Public per-frame puppet evaluation and batch composition. |
-| `runtime_appearance.py` | 52 | Evaluate drawable opacity and multiply-color curves. |
-| `runtime_blend_grid.py` | 83 | Collect sparse blend-grid corners and reduce their form maps by axis. |
-| `runtime_blends.py` | 36 | Bracket each parameter axis for multi-axis form sampling. |
-| `runtime_curves.py` | 39 | Sample valid parameter-driven scalar and RGB multiplier curves. |
-| `runtime_deformer_order.py` | 35 | Resolve parent-first deformer application order, including cycles. |
-| `runtime_forms.py` | 40 | Copy, interpolate, and overlay partial deformer forms. |
-| `runtime_geometry.py` | 84 | Compose morphs, bone skinning, and ordered rigid deformations. |
-| `runtime_interpolation.py` | 22 | Locate a clamped linear interval in sorted authored coordinates. |
-| `runtime_morphs.py` | 112 | Apply parameter-driven vertex offsets and cache rest geometry. |
-| `runtime_overlays.py` | 63 | Apply ordered expression overrides and exclusive pose selections. |
-| `runtime_parameters.py` | 68 | Sample single-parameter keys and merge overrides in document order. |
-| `runtime_parts.py` | 78 | Accumulate visibility and opacity through the authored part hierarchy. |
-| `runtime_skinning.py` | 61 | Resolve authored bone forms and apply weighted skeleton deformation. |
-| `deformers.py` | 262 | 純 NumPy deformer 實作 |
-| `physics.py` | 138 | Verlet 物理引擎（純浮點數積分，由 `PuppetCanvas` 的物理時鐘推進） |
-| `render_prep.py` | 103 | `PuppetDocument` → GL-ready draw list |
-| `canvas.py` | 214 | `PuppetCanvas` 的 Qt 身分、訊號與個別實例初始狀態；組合各領域 mixin 並保留既有 helper 匯入位置 |
-| `canvas_parameters.py` | 100 | 文件綁定與參數寫入：單一／強制更新及僅變更批次共用寫入規則；保留轉換失敗時的部分寫入與訊號順序 |
-| `canvas_rig.py` | 75 | 表情輸入、物理輸出覆蓋與頂點／可見性／透明度／色彩快取；共用重算後排程重繪 |
-| `canvas_physics.py` | 81 | 固定步長物理時鐘、輸出變動門檻、顯示／隱藏時的 timer 啟停 |
-| `canvas_overrides.py` | 57 | 表情堆疊與姿勢群組選擇；保留重複表情無動作及重選姿勢的通知 |
-| `canvas_editing.py` | 79 | Deformer 選取與網格頂點拖曳；移動成功才重建 draw list |
-| `canvas_view.py` | 75 | DPR 視埠尺寸、文件適配、平移／縮放座標與游標錨定縮放 |
-| `canvas_pointer.py` | 77 | 滑鼠事件路由：平移優先於網格拖曳，再送出游標座標；hit-area 點擊 |
-| `canvas_frame.py` | 177 | 畫面與離屏幀編排、桌寵陰影設定、GL context／FBO 生命週期；FBO 銷毀後才釋放 current context |
-| `canvas_gl_state.py` | 52 | 離屏渲染保存／還原清除色、viewport 與矩陣堆疊；深度／stencil FBO 格式 |
-| `canvas_render.py` | 565 | `PuppetCanvasRenderMixin`：棋盤背景、桌寵陰影、drawable 繪製與 stencil 裁切、選取框與錨點、頂點緩衝與貼圖（預乘 alpha 的 `_premultiply_alpha`）快取 |
-| `clip_masks.py` | 56 | `Drawable.clip_mask` 參照解析 |
-| `bone_weights.py` | 100 | 骨骼 LBS 權重驗證與修復（Repair Rig 的權重正規化） |
-| `hit_test.py` | 120 | `HitArea` 純 Python 命中測試 |
-| `mesh_edit.py` | 128 · `mesh_repair.py` 246 · `symmetrize.py` 138 | 網格編輯（`remap_vertex_data`：刪頂點或修復後讓骨骼權重與頂點 morph 跟著重新編號）/ 拓樸修復（`match_uvs` 保留貼圖接縫、`sources` 回報來源頂點）/ X 軸自動對稱 |
-| `rig_repair.py` | 62 | Tools > Repair Rig：每個 drawable 跑 `repair_mesh`（UV 也相同才合併）＋權重正規化，回報合計 |
-| `operations.py` | 228 | `PuppetDocument` 的純編輯操作 |
-| `validator.py` | 314 | 靜態健康檢查 |
-
-#### 動作 / 表情 / 閒置
-
-`motion_sampler.py`(148) 純取樣 · `motion_player.py`(212) Qt 播放驅動：狀態、綁定（循環依動作自己的 `loop`、淡入來源擷取）、播放／暫停／停止與群組隨機挑選 · `motion_player_timeline.py`(70) 播放頭 seek／step／計時 tick 與每幀取樣寫入（淡入混合） · `motion_player_fade.py`(95) 淡出往參數預設值緩動、snap-stop 與淡入淡出狀態重置 · `motion_player_sound.py`(58) 動作音效延遲建立與播放／停止（缺 QtMultimedia 時停用） · `motion_recorder.py`(166) 錄製 ·
-`motion_timeline.py`(460) 曲線圖編輯（數值軸用參數自己的範圍；Ease 把整軌改成具名緩動、Simplify Keys 依參數範圍百分比精簡關鍵幀） · `motion_compress.py`(113) 移除冗餘關鍵幀（Simplify Keys） ·
-`motion_picker.py`(53) 群組隨機挑選 · `synth_motions.py`(286) 為轉檔 rig 合成閒置動作 ·
-`idle_driver.py`(143) · `idle_motion_cycler.py`(151) · `easing.py`(250) 緩動預設（`ease_track`：單一 bezier 或 elastic／bounce 取樣成線段，時間軸的 Ease 用它） ·
-`motion_dock.py`(201) · `expression_dock.py`(121) · `pose_dock.py`(118) 姿勢群組挑成員（跟著 canvas 的 `pose_changed`）· `parameter_dock.py`(204) · `bone_tree_dock.py`(196)
-
-#### 即時輸入驅動
-
-`input_engine.py`(215) 把即時輸入灌進 canvas · `input_drivers.py`(215) 純對應函式（游標→角度參數等）·
-`mouse_gaze_driver.py`(239) 頭+眼追游標 · `webcam_tracker.py`(479) 攝影機 → 參數，背景快照與非阻塞停止 ·
-`webcam_status.py`(59) 不可變狀態與依實際錯誤分類的操作提示 ·
-`webcam_preview_dialog.py`(272) · `face_landmark_mapper.py`(212) MediaPipe FaceMesh → 參數 ·
-`audio_lipsync.py`(139) 音檔驅動嘴型（Live > Lip-sync from Audio File…：`lipsync_motion` 把 WAV 響度做成 `ParamMouthOpenY` 動作、以該檔為配音）
-
-#### 輸出
-
-`recorder.py`(292) 幀擷取；錄影先寫同目錄暫存檔，至少一幀且成功 close／輸出非空後才原子發布；失敗保留目的檔 · `batch_export.py`(199) 每個 motion 匯出成 MP4/GIF/WebM；開始前保留整批唯一且符合檔案系統大小寫規則的目的名稱 ·
-`spritesheet.py`(67) · `virtual_camera.py`(243) 系統虛擬攝影機 · `ndi_output.py`(222) NDI 來源廣播 ·
-`vts_api.py`(391) VTube Studio Public API server（最小子集）；驗證 messageType／data／parameterValues 容器；無效 envelope／建立參數回 APIError，注入清單的無效項目略過
-
-Workspace 的 Qt shell 與領域責任分列如下。既有 `workspace_menus.py`、`workspace_import.py`、`workspace_live.py` 與 `workspace_ui.py` 維持各自的選單、匯入、串流及版面責任。
-
-| 模組 | 行數 | 功用 |
-| --- | ---: | --- |
-| `workspace.py` | 203 | PuppetWorkspace Qt 身分、canvas/dock/controller 生命週期、共用 action 與 status label；closeEvent 與 parent teardown 共用 idempotent `shutdown()`。 |
-| `workspace_files.py` | 104 | Puppet 開啟／儲存對話框、檔案錯誤回饋與最近路徑；保留直接儲存不補副檔名。 |
-| `workspace_authoring.py` | 49 | 新增 deformer／parameter 共用文件、識別碼、操作、重載及回饋流程；依命名空間選第一個可用編號。 |
-| `workspace_keyframes.py` | 58 | Parameter keyframe 設定／移除、mesh 編輯切換及骨架變更後重載通知。 |
-| `workspace_reset.py` | 109 | 停止輸入來源後依序還原表情、姿勢、物理與參數；idempotent `shutdown()` 停止錄影／批次輸出／motion 錄製、逐一釋放 driver（含 VTS、live input、idle）並記錄失敗、停止 motion playback 並關閉 webcam 預覽。 |
-| `workspace_input.py` | 89 | Live input／idle 開關、可選套件安裝與失敗時封鎖訊號的 toggle reset。 |
-| `workspace_validation.py` | 124 | Rig 驗證、修復、結果對話框與 mirrored drawable 命令。 |
-| `workspace_export.py` | 58 | Motion 批次匯出的目錄／格式選擇及進度、完成、失敗回饋。 |
-| `workspace_motion_edit.py` | 57 | 目前 motion timeline 編輯、定位既有 playhead 與 hit-area motion／expression 路由。 |
-| `workspace_motion_record.py` | 41 | Motion 錄製命名、開關失敗處理與完成後寫回文件。 |
-| `workspace_audio.py` | 57 | WAV lip-sync 匯入、mouth range 選擇、錯誤回饋及 motion 選取。 |
-
-內附 Imeru 模型由 `examples/puppet/imeru/build.py` 打包 `artwork/` 的透明插畫。`illustrated.py` 組合角色與五官素材、配準手臂座標；`illustrated_mesh.py` 建立區域網格及 UV，直接引用原始 PNG，不重畫像素；`illustrated_rig.py` 定義頭髮、五官、呼吸與肢體變形。身體、頭部和頭髮共用連續網格，每隻袖子也保留連續表面。手肘先以固定骨骼和彎曲骨骼的權重混合，再執行肩部旋轉，避免手肘切線。原圖為 1024 × 1536，上下各留 64 像素動作空間，畫布為 1024 × 1664；呼吸不影響腳底。既有 Blender 製作程式保留為獨立的原生重建路徑，不是預設插畫模型的素材來源。
-
-### 6.16 `Imervue/desktop_pet/`
-
-39 個檔、7,439 行。無邊框、透明、永遠置頂的桌面寵物懸浮視窗，**共用整個 Puppet 執行期**。
-Tab 4 本身只是控制面板，角色住在獨立的 top-level `PetWindow`。套件的 `__init__` 和 puppet 一樣用模組 `__getattr__` 延遲匯出 `PetWindow`／`PetWorkspace`／`PetTrayIcon` 等名稱，所以 import `desktop_pet.settings` 之類的輕量子模組不會載入視窗、工作區與 Puppet canvas。
-
-#### 視窗與互動
-
-| 模組 | 行數 | 功用 |
-| --- | ---: | --- |
-| `pet_window.py` | 447 | `PetWindow`：無邊框透明視窗，host 一個 pet 模式的 `PuppetCanvas`；只留建構、canvas-driver 存取屬性、顯示／隱藏、idempotent `shutdown`（停止 timers、speech 與 controllers）、載入 rig 與 canvas 事件過濾，其餘行為由下列 mixin 提供，並 re-export 移出去的常數與 `classify_drop_paths` |
-| `pet_window_voice.py` | 143 | `PetVoiceMixin`：點擊回應（腳本台詞優先、LLM 並行）、對話泡泡開關與顯示、`.petscript.json` 載入／重設／啟動還原與每秒排程台詞 |
-| `pet_window_playback.py` | 161 | `PetPlaybackMixin` + `classify_drop_paths`：動作播放（指定／依名稱／群組隨機）、表情切換、拖放檔案分派（`.puppet` 換 rig，其他播 Drop 群組） |
-| `pet_window_host.py` | 230 | `PetHostMixin`：`_persist` 設定寫入（寫進本寵物 slot 並發 `setting_changed`）、`FeatureHost` 轉接、`add_integration` / `remove_integration` / `integration` 外掛整合登錄表、右鍵選單列、尺寸預設、啟動時還原位置與已存 driver |
-| `pet_window_flags.py` | 201 | `PetWindowFlagsMixin`：`PetWindow` 的視窗旗標組合（置頂／置底、點擊穿透）、鎖定位置、吸附門檻、透明度、全螢幕時隱藏 |
-| `pet_feature_toggles.py` | 188 | `PetFeatureTogglesMixin`：`PetWindow` 的各功能開關（眨眼、對嘴、webcam、熱鍵、虛擬攝影機、LLM、音樂律動、閒置小遊戲、陰影、音效、滑鼠注視），只轉給對應控制器並存設定 |
-| `pet_workspace.py` | 210 | `PetWorkspace`：Desktop Pet 控制面板；只留建構、延遲建立 overlay（建立後補同步已自行重啟的 driver 並發 `pet_created`）、把 `setting_changed` 鏡射回勾選框／尺寸下拉／系統匣、啟動時靜默重載 rig 與勾選已存 driver、`shutdown`（closeEvent 共用）明確關閉 overlay 並釋放其服務與系統匣，其餘行為由下列 mixin 提供，並 re-export `saved_hotkeys`、`hotkey_conflict_notice`、`DEFAULT_EXAMPLE_PUPPET` |
-| `pet_workspace_ui.py` | 292 | `PetWorkspaceUiMixin`：標題、Rig 群組與 Window／Live drivers／Pet script／Global hotkeys 四個可捲動分頁的建構，從已存設定還原每個控制項並接上對應 slot |
-| `pet_workspace_files.py` | 205 | `PetWorkspaceFilesMixin` + `_resolve_bundled_example`：開啟 `.puppet`／內附 Imeru 範例、載入／編輯／重設 `.petscript.json`，更新 rig／腳本標籤與狀態列 |
-| `pet_workspace_toggles.py` | 127 | `PetWorkspaceTogglesMixin` + 分頁共用的 `_tr`／`_set_quietly`：視窗與 driver 勾選框、透明度／吸附／尺寸的 slot，選用依賴（麥克風、webcam）缺件時靜默取消勾選並提示 |
-| `pet_workspace_hotkeys.py` | 135 | `PetWorkspaceHotkeysMixin` + `saved_hotkeys`／`hotkey_conflict_notice`：Global hotkeys 群組建構、啟用 OS 層監聽、拒絕已被其他動作佔用的按鍵並即時重啟監聽 |
-| `pet_interaction.py` | 214 | 指標互動控制器：拖曳移動、點擊路由、命中偵測 |
-| `pet_placement.py` | 153 | 邊緣吸附、多螢幕位置還原、預設角落停靠 |
-| `edge_snap.py` | 165 | 純 Python 邊緣吸附數學 |
-| `pet_context_menu.py` | 171 | 右鍵選單建構器 |
-| `pet_shadow.py` | 137 + `pet_shadow_controller.py`(83) | 放射漸層落地陰影（單一 draw call） |
-| `speech_bubble.py` | 208 | 對話泡泡覆蓋視窗（自動淡出） |
-| `tray_icon.py` | 151 | 系統匣切換 |
-| `settings.py` | 293 | 設定持久化（schema + 預設值 + 載入夾限） |
-| `fullscreen_detector.py` | 166 | 偵測同螢幕有全螢幕程式時自動隱藏 |
-
-#### 驅動與功能控制器（兩個家族）
-
-| 模組 | 行數 | 功用 |
-| --- | ---: | --- |
-| `pet_feature_base.py` | 159 | `FeatureHost` Protocol + `IntegrationController` 骨架 |
-| `pet_features.py` | 77 | 內建整合控制器：全域熱鍵；OBS / Twitch / Webhook / Windows 通知是 `plugins/pet_integrations` 外掛，經 `add_integration` 加進同一個登錄表 |
-| `pet_drivers.py` | 249 | canvas 驅動控制器：音樂律動 / 閒置小遊戲 / 點擊音效 / LLM 對話 |
-| `pet_canvas_drivers.py` | 177 | canvas 輸入驅動子系統（自動眨眼 / 拖曳追頭 / 麥克風對嘴） |
-
-> 這兩個家族的存在是為了把 `PetWindow` 從 god-object 拉回「協調者」。
-
-#### 外部整合
-
-OBS / Twitch 聊天 / webhook / Windows 通知已是外掛 `plugins/pet_integrations`（§7） ·
-寵物外掛的穩定介面見 `plugin_base.on_pet_created` ·
-`hotkey_manager.py`(248) 全域熱鍵（pynput）+ `hotkey_conflicts.py`(60) 衝突偵測（`clashing_action`／`find_conflicts`，Desktop Pet 分頁的熱鍵欄位用） ·
-`command_parser.py`(77) 可重用的聊天指令路由器（exact / prefix / substring / regex；`pet_integrations` 外掛的 Twitch 關鍵字走它）
-
-#### 個性與行為
-
-`pet_script.py`(437) JSON 支撐的台詞 + 排程事件引擎 · `pet_script_editor.py`(159) 內建編輯器對話框（分頁組裝、快照，並轉出下列名稱） ·
-`pet_script_form.py`(90) 無 Qt 的表單資料 → `PetScript` 轉換（略過壞的排程項目、保留規則） ·
-`pet_script_string_list.py`(100) 共用字串清單編輯器（新增 / 編輯 / 刪除）+ `_tr` ·
-`pet_script_sections.py`(241) `{key: [字串]}` 區段與排程清單編輯器 ·
-`schedule_rules.py`(101) 時段 / 星期閘門 · `idle_minigame.py`(278) 閒置好奇 / 打呵欠 ·
-`llm_dialogue.py`(206) 本地 LLM（預設 Ollama）對話（URL 規則與 POST 在 `system/local_llm`） · `music_rhythm.py`(463) WASAPI loopback 抓系統音訊隨節奏擺動 ·
-`click_sfx.py`(168) 事件音效
+Desktop Pet 分頁保留在 Imervue；外部 `PetWorkspace`、`PetWindow`、行為控制器、腳本與系統匣實作均位於 Rigora。主視窗仍負責分頁開關、延遲建立與 shutdown，Rigora 自行管理桌寵設定。外掛的 `on_pet_created` 與 `IntegrationController` 契約保留，匯入改用 `rigora.desktop_pet`。
 
 ### 6.17 `Imervue/plugin/`
 
@@ -1256,7 +1079,7 @@ OBS / Twitch 聊天 / webhook / Windows 通知已是外掛 `plugins/pet_integrat
 | `server_jsonrpc.py` | 93 | 協定常數（`PROTOCOL_VERSION`、`SERVER_NAME`…）、JSON-RPC 成功／錯誤信封、`tools/list` 描述、`tools/call` 的 `content` 信封、`_MCPError`、`_required_uri` |
 | `server_transport.py` | 116 | stdio 傳輸：`run()` 讀換行分隔的 JSON-RPC、回覆走共用鎖的 `Notifier`，`_force_utf8`，以及監看 resource root 的 watchdog `_start_resource_watcher` |
 | `tools.py` | 176 | 工具集的對外門面：re-export 全部 58 個處理器，`_TOOL_DEFINITIONS`（讀取類在前、編輯類在後，即 `tools/list` 順序）與 `register_default_tools` |
-| `tools_read.py` | 662 | 22 個讀取／分析類處理器：`list_images`、`read_image_metadata`、`read_xmp_tags`、`extract_gps`、`image_statistics`、`quality_metrics`、`ocr_text`、`find_similar`、`search_images`、`convert_format`、`puppet_inspect`、`puppet_validate`、`puppet_schema`… |
+| `tools_read.py` | 616 | 22 個讀取／分析類處理器：`list_images`、`read_image_metadata`、`read_xmp_tags`、`extract_gps`、`image_statistics`、`quality_metrics`、`ocr_text`、`find_similar`、`search_images`、`convert_format`、`puppet_inspect`、`puppet_validate`、`puppet_schema`… |
 | `tools_edit.py` | 419 | 寫出類處理器的匯入位置（`tool_defs_edit`、`tools.py`、`cli_native` 都從這裡取），re-export 全部 36 個；本身持有浮水印、外框、拼貼、裁切／縮放（`_resize_dims`）／旋轉 |
 | `tools_edit_effects.py` | 304 | 20 個色調／色彩／風格化／細節效果處理器（`solarize_image`、`glow_image`、`velvia_image`、`tone_equalizer_image`、`kaleidoscope_image`、`clahe_image`、`local_contrast_image`…） |
 | `tools_edit_grading.py` | 196 | 10 個調色／曲線／鏡頭效果處理器（`posterize_image`、`levels_image`、`channel_mixer_image`、`curve_image`、`lens_correction_image`…） |
@@ -1588,7 +1411,7 @@ GPU 顯影以固定 640k/24MP/60MP actual Vulkan device 量測 host upload/readb
 
 Paint `animation_export.py`、`paint_project_export.py` 與 MCP writer 使用 `replace_atomically`，失敗保留既有目的檔；漫畫的獨立圖片逐頁提交，CBZ／PDF 則完成整個檔案後才提交。搬移／複製的 exclusive publication 與覆寫匯出的 atomic replacement 是不同契約，sidecar 仍共用搬移規則。
 
-主視窗在確認可關閉後明確呼叫 Puppet／Desktop Pet `shutdown()`，不依賴 child closeEvent。`puppet/workspace_reset.py` 釋放錄影／批次輸出、VTS、live drivers、idle／motion playback 與 preview；`pet_workspace.py`／`pet_window.py` 關閉 overlay、timers、speech 與 feature controllers。shutdown 可重複呼叫；input shutdown 先停用 audio callback；webcam shutdown 停用 pump 並設 stop event，保留 thread reference，由 worker finally 釋放 camera，阻塞 device read 不等待於 Qt 執行緒。`gui/auto_tag_dialog.py` 使用 WorkerHost retirement，close／Esc 不等待目前 classifier；取消於下一張圖片前生效。pip 另以實際子行程與 Timer 管理阻塞 stdout 的期限與清理。
+主視窗在確認可關閉後明確呼叫 Puppet／Desktop Pet `shutdown()`，不依賴 child closeEvent。`rigora/puppet/workspace_reset.py` 釋放錄影／批次輸出、VTS、live drivers、idle／motion playback 與 preview；`pet_workspace.py`／`pet_window.py` 關閉 overlay、timers、speech 與 feature controllers。shutdown 可重複呼叫；input shutdown 先停用 audio callback；webcam shutdown 停用 pump 並設 stop event，保留 thread reference，由 worker finally 釋放 camera，阻塞 device read 不等待於 Qt 執行緒。`gui/auto_tag_dialog.py` 使用 WorkerHost retirement，close／Esc 不等待目前 classifier；取消於下一張圖片前生效。pip 另以實際子行程與 Timer 管理阻塞 stdout 的期限與清理。
 
 ---
 
@@ -1681,24 +1504,4 @@ Paint `animation_export.py`、`paint_project_export.py` 與 MCP writer 使用 `r
 
 ## FrontEngine puppet consumer
 
-| Imeru authoring module | Lines | Responsibility |
-|---|---:|---|
-| `examples/puppet/imeru/build.py` | 84 | Pack and validate the illustrated archive; retain the previous native builder separately |
-| `examples/puppet/imeru/illustrated.py` | 104 | Assemble artwork regions, register arm landmarks and reserve motion margins |
-| `examples/puppet/imeru/illustrated_mesh.py` | 85 | Build alpha-aware meshes and authored feature contours with original texture UVs |
-| `examples/puppet/imeru/illustrated_rig.py` | 183 | Bind facial and body motion, continuous sleeves and shoulder-attached ribbon weights |
-
-The bundled Imeru uses detailed full-body anime illustrations stored under
-`examples/puppet/imeru/artwork/`. The illustrated builder references their original
-pixels through UV meshes. The body, head and full hair remain connected, and each
-sleeve bends as a continuous surface. Runtime skinning precedes shoulder rotation.
-The canvas is 1024 × 1664, with 64 pixels of motion room above and below the
-1024 × 1536 artwork. Internal drawable IDs change with this authoring model;
-standard parameter inputs, eight motions, seven expressions and the desktop-pet
-script contract remain available. Breathing leaves the feet planted. The example
-README links production-rendered neutral and waving previews.
-
-FrontEngine optionally reuses the public puppet reader/Canvas/controllers and desktop-pet
-script engine in its own windows. It does not instantiate PetWindow or modify Imervue
-preferences. Archive v1 and runtime import contracts are listed in architecture.md §6.
-FrontEngine validates containers and tests reference reader round trips plus real GL frames.
+FrontEngine 另行安裝已授權的 Rigora checkout 或 wheel，透過 `rigora.puppet` 的文件讀取器、畫布及控制器，以及 `rigora.desktop_pet` 腳本引擎，在自有視窗呈現角色。它不建立 PetWindow，也不修改 Imervue 設定。Imeru 插畫、建置模組與預覽隨 Rigora 維護；Imervue 不再封裝這些素材。`.puppet` v1 MIME 與原有 schema URL 不變。完整契約見 `architecture.md` 第 6 節。

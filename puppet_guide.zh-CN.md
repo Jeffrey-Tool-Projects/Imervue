@@ -1,5 +1,7 @@
 # Puppet 指南 — 直播与动画制作
 
+Puppet 与 Desktop Pet 现在使用外部 Rigora 软件包。Imervue 保留标签页及现有 CLI/MCP 命令，但不再内置第二份动画引擎。Rigora 目前是私有仓库，尚未公开发布软件包。取得授权的相邻 checkout 后，请在同一个 Python 环境执行 `python -m pip install "../Rigora[gui]"`，再重新启动 Imervue。未安装 Rigora 时，这些标签页会显示安装提示，Imervue 其他功能仍可使用。Rigora 自行管理设置与模型缓存；首次嵌入启动会导入相关现有偏好，但不共享设置文件。 请另外安装已授权的 Rigora checkout 或 wheel；公开使用方软件包不声明尚未发布的 Rigora 依赖。公开的冻结可执行文件不包含私有 Rigora，除非构建时已提供。使用外部 pip 安装 Rigora 无法将其加入现有冻结可执行文件。
+
 从"我想做 VTuber 风直播或短动画"走到"我已经在 OBS 上直播 / 我手上有一个 MP4 文件"的完整流程，用 Imervue 的 **Puppet** 标签完成。
 
 两条路：
@@ -190,7 +192,7 @@ Puppet 标签没有用来新建动作的 keyframe 编辑器。不靠实时表演
 
 1. 打开 **Output > Record motion**，自己拖 **Parameters** 停靠栏的滑块 — 滑块变化和其他实时输入一样会被录下。
 2. 停止录制，再用 **Edit > Edit motion…** 调整关键点（见 2.2）。
-3. 要精确的 keyframe，就直接手写 `.puppet` zip 里的 `motions/<name>.json`，并把名称加进 `puppet.json` 的 `motions`（见 [`FORMAT.md`](Imervue/puppet/FORMAT.md)）。
+3. 要精确的 keyframe，就直接手写 `.puppet` zip 里的 `motions/<name>.json`，并把名称加进 `puppet.json` 的 `motions`（见 [`FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)）。
 
 每个滑块旁的 **Set key** 按钮是绑骨用的工具，不是动作 keyframe：它把每个变形器当前的 form 存成该参数在滑块当前值的 key。**Edit > Add Parameter** 会新增一个 `ParamN` 滑块（−1 到 1）供你打 key。
 
@@ -258,7 +260,7 @@ Parameter blends — 在两个以上参数构成的网格上给变形器 form �
 
 ### 参数
 
-每个会动的值都是 *parameter*，有 min、max、default。参数的每个 `key` 存的是某个参数值下的变形器 form；runtime 在当前值两侧的两个 key 之间线性插值，超出首尾就保持端点 key。Cubism 标准 id 参考 `Imervue/puppet/standard_params.py`。
+每个会动的值都是 *parameter*，有 min、max、default。参数的每个 `key` 存的是某个参数值下的变形器 form；runtime 在当前值两侧的两个 key 之间线性插值，超出首尾就保持端点 key。Cubism 标准 id 参考 `rigora/puppet/standard_params.py`。
 
 ### 变形器
 
@@ -351,6 +353,6 @@ Motions 停靠栏的 **Loop** 关闭时，播到结尾的动作会停在最后�
 
 ## 文件格式参考
 
-`.puppet` 是 zip 容器、含 JSON manifest 跟 PNG 纹理。完整规格见 [`Imervue/puppet/FORMAT.md`](Imervue/puppet/FORMAT.md)。
+`.puppet` 是 zip 容器、含 JSON manifest 跟 PNG 纹理。完整规格见 [`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)。
 
-内置 demo rig：[`examples/puppet/imeru.puppet`](examples/puppet/imeru.puppet)，由 `examples/puppet/imeru/build.py` 重新生成（见 [`examples/puppet/README.md`](examples/puppet/README.md)）。
+内置 demo rig：[`../Rigora/examples/puppet/imeru.puppet`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/puppet/imeru.puppet)，由 `../Rigora/examples/puppet/imeru/build.py` 重新生成（见 [`../Rigora/examples/puppet/README.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/puppet/README.md)）。

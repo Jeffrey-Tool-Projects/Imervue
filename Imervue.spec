@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 from PyInstaller.utils.hooks import collect_submodules
+from importlib.util import find_spec
 from PyInstaller.utils.hooks import collect_all
 
 # Heavy ML weight blobs — kept out of the installer. Plugins that need them
@@ -22,13 +23,7 @@ def _is_model_asset(dest: str) -> bool:
 
 datas = [
     ('Imervue\\multi_language', 'Imervue\\multi_language'),
-    # plugins/ — third-party extension folder. Puppet is no longer here:
-    # it was promoted to a built-in Imervue subpackage at Imervue/puppet/
-    # and gets picked up automatically by PyInstaller's static analysis.
     ('plugins', 'plugins'),
-    # examples/ — ships examples/puppet/imeru.puppet so users can try
-    # the Puppet tab's "Open Puppet…" right after install.
-    ('examples', 'examples'),
 ]
 binaries = []
 hiddenimports = []
@@ -39,6 +34,11 @@ hiddenimports += collect_submodules('PySide6')
 # runtime, so the bundle must carry every submodule or those plugins fail
 # with ModuleNotFoundError.
 hiddenimports += collect_submodules('Imervue')
+if find_spec('rigora') is not None:
+    rigora_data, rigora_binaries, rigora_imports = collect_all('rigora')
+    datas += rigora_data
+    binaries += rigora_binaries
+    hiddenimports += rigora_imports
 tmp_ret = collect_all('imageio')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('rawpy')

@@ -1,5 +1,7 @@
 # 使用 Nuitka 打包 Imervue
 
+Puppet／Desktop Pet 是選用的外部 Rigora 功能。私人 Rigora 尚未公開發行；需要這些功能的產物，必須先從授權 checkout／wheel 安裝至建置環境。建置環境若已安裝授權 Rigora，請在所選命令加入 `--include-package=rigora --include-package-data=rigora`；未安裝時省略這兩項。 公開凍結產物未提供 Rigora 時保留安裝提示；外部 pip 無法將它加入既有執行檔。
+
 本文件說明如何用 Nuitka 將 Imervue 編譯成原生執行檔，並提供 **Windows / Linux / macOS** 三種平台的命令與注意事項。Nuitka 會把 Python 原始碼轉成 C 再編譯，啟動速度與反編譯難度都比 PyInstaller 好，但打包時間較長，也比較挑依賴。
 
 > 跟 PyInstaller 一樣，Nuitka **只能在目標平台自己打包目標平台的產物**——Windows 出 `.exe`、Linux 出 ELF 二進位、macOS 出 `.app` bundle。不能交叉編譯。
@@ -94,9 +96,7 @@ python -m nuitka ^
   --include-package-data=imageio ^
   --include-package-data=rawpy ^
   "--include-data-files=plugins=plugins/=**/*.py" ^
-  --include-data-dir=examples=examples ^
   --noinclude-data-files=plugins/*/models/* ^
-  --noinclude-data-files=examples/**/__pycache__/* ^
   --noinclude-data-files=*.onnx ^
   --noinclude-data-files=*.pt ^
   --noinclude-data-files=*.pth ^
@@ -135,9 +135,7 @@ python -m nuitka `
   --include-package-data=imageio `
   --include-package-data=rawpy `
   "--include-data-files=plugins=plugins/=**/*.py" `
-  --include-data-dir=examples=examples `
   --noinclude-data-files=plugins/*/models/* `
-  --noinclude-data-files=examples/**/__pycache__/* `
   --noinclude-data-files=*.onnx `
   --noinclude-data-files=*.pt `
   --noinclude-data-files=*.pth `
@@ -163,7 +161,7 @@ python -m nuitka `
 **一行版（任何 shell 都能用，最保險）**：
 
 ```
-python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=pyside6 --python-flag=-m --include-package=Imervue --include-package=qt_material --include-package=imageio --include-package=rawpy --include-package-data=qt_material --include-package-data=imageio --include-package-data=rawpy "--include-data-files=plugins=plugins/=**/*.py" --include-data-dir=examples=examples --noinclude-data-files=plugins/*/models/* --noinclude-data-files=examples/**/__pycache__/* --noinclude-data-files=*.onnx --noinclude-data-files=*.pt --noinclude-data-files=*.pth --noinclude-data-files=*.safetensors --noinclude-data-files=*.gguf --noinclude-data-files=exe/*.log --noinclude-data-files=exe/*.json --include-data-dir=exe=exe --include-data-files=THIRD_PARTY_LICENSES.md=THIRD_PARTY_LICENSES.md --include-data-files=LICENSE=LICENSE --module-parameter=torch-disable-jit=yes --nofollow-import-to=pytest --nofollow-import-to=doctest --nofollow-import-to=rembg --windows-icon-from-ico=exe\Imervue.ico --output-filename=Imervue.exe --output-dir=build_nuitka --remove-output --assume-yes-for-downloads Imervue
+python -m nuitka --standalone --windows-console-mode=disable --enable-plugin=pyside6 --python-flag=-m --include-package=Imervue --include-package=qt_material --include-package=imageio --include-package=rawpy --include-package-data=qt_material --include-package-data=imageio --include-package-data=rawpy "--include-data-files=plugins=plugins/=**/*.py" --noinclude-data-files=plugins/*/models/* --noinclude-data-files=*.onnx --noinclude-data-files=*.pt --noinclude-data-files=*.pth --noinclude-data-files=*.safetensors --noinclude-data-files=*.gguf --noinclude-data-files=exe/*.log --noinclude-data-files=exe/*.json --include-data-dir=exe=exe --include-data-files=THIRD_PARTY_LICENSES.md=THIRD_PARTY_LICENSES.md --include-data-files=LICENSE=LICENSE --module-parameter=torch-disable-jit=yes --nofollow-import-to=pytest --nofollow-import-to=doctest --nofollow-import-to=rembg --windows-icon-from-ico=exe\Imervue.ico --output-filename=Imervue.exe --output-dir=build_nuitka --remove-output --assume-yes-for-downloads Imervue
 ```
 
 產物：`build_nuitka\Imervue.dist\Imervue.exe`（standalone）或 `build_nuitka\Imervue.exe`（onefile）。
@@ -198,9 +196,7 @@ python -m nuitka \
   --include-package-data=imageio \
   --include-package-data=rawpy \
   "--include-data-files=plugins=plugins/=**/*.py" \
-  --include-data-dir=examples=examples \
   --noinclude-data-files=plugins/*/models/* \
-  --noinclude-data-files=examples/**/__pycache__/* \
   --noinclude-data-files=*.onnx \
   --noinclude-data-files=*.pt \
   --noinclude-data-files=*.pth \
@@ -247,9 +243,7 @@ python -m nuitka \
   --include-package-data=imageio \
   --include-package-data=rawpy \
   "--include-data-files=plugins=plugins/=**/*.py" \
-  --include-data-dir=examples=examples \
   --noinclude-data-files=plugins/*/models/* \
-  --noinclude-data-files=examples/**/__pycache__/* \
   --noinclude-data-files=*.onnx \
   --noinclude-data-files=*.pt \
   --noinclude-data-files=*.pth \
@@ -308,9 +302,9 @@ xcrun stapler staple build_nuitka/Imervue.app
 - `--enable-plugin=pyside6`：啟用 Nuitka 的 PySide6 plugin，自動處理 Qt 的 resource、plugin 目錄、translations。
 - `--include-package=Imervue`：**必要**。以套件為編譯目標時 Nuitka 只會跟著 import 走，不是「整包都收」，所以只有外掛才 import 的模組不會進產物。2026-09-23 實測：沒有這個旗標時，EXE 啟動後 17 個內建外掛有 10 個掛掉，`imervue.log` 印的是 `No module named 'Imervue.plugin.model_dir'`、`'Imervue.image.inpaint'`、`'Imervue.plugin.subprocess_util'`；加上旗標後 17 個全部載入、產物只多 2 MB（687 → 689 MB）。外掛是執行期從磁碟載入的（見上一點），Nuitka 的靜態分析看不到它們的 import，所以逐一補 `--include-module=Imervue.foo` 只會在下一個外掛新增 import 時再壞一次。加上旗標後會跳 `Not allowed to include module 'Imervue.__main__' due to 'Main program is already included in package mode.'`，那只是說 entry point 不會被重複 include，可以忽略。
 - `--include-package-data=...`：把 `qt_material`、`imageio`、`rawpy` 的非 `.py` 資源（QSS、entry-point、原生 DLL / `.so` / `.dylib`）一起帶上。
-- `--include-data-files=plugins=plugins/=**/*.py`：把 `plugins/` 底下的 `.py` 當作**純資料**鏡射進產物，並保留目錄結構。**不要**改用 `--include-data-dir=plugins=plugins`：該選項只收「非程式碼檔」，而 plugin 全是 `.py`，結果一個檔都不會進產物，只會印 `Nuitka-Options:WARNING: No data files in directory 'plugins'`，做出來的 EXE 連 `plugins/` 目錄都沒有。**不要**對 `plugins` 用 `--include-package`——`plugins/` 底下沒有 `__init__.py`，不是 Python 套件；而且每個 plugin 的 `__init__.py` 是以「頂層模組」的方式自我 import（例如 `from ai_background_remover.ai_background_remover import ...`），把它們編譯成 `plugins.xxx` 子模組反而會破壞這條路徑。執行期 `plugin_manager.py` 會把 `<app_dir>/plugins` 插到 `sys.path`，再透過標準 `FileFinder` 從資料夾載入 `.py` 檔，因此 plugin 永遠是走 interpreter 路線，**不經過 Nuitka 的 frozen importer**。這同時也保留了使用者後續從 plugin 下載器新增 / 更新 plugin 的能力（不需要重新編譯整個 app）。**注意**：Puppet 已經不在這條路線上——它從 plugin 升格成內建分頁（`Imervue/puppet/`），會跟其他 `Imervue.*` 子套件一樣被 Nuitka 自動 walk 進去，不需要任何特別處理。
-- `--include-data-dir=examples=examples`：把 `examples/` 目錄鏡射進產物。目前只放 `examples/puppet/imeru.puppet`（Imervue 的原創吉祥物，由 `examples/puppet/imeru/build.py` 產生；`.py` 屬於程式碼，不會被 `--include-data-dir` 帶進去）、`examples/desktop_pet/imeru.petscript.json` + README。讓使用者第一次點 Puppet 分頁的「Open Puppet…」時就有東西可開。`--noinclude-data-files=examples/**/__pycache__/*` 過濾掉本機開發跑出來的 pycache，避免汙染發佈品。
-- **Cubism Native SDK DLL 永遠不打包**：Live2D 的 Free Material License 禁止散佈 SDK 二進位。`Imervue/puppet/cubism_native_bridge.py` 執行期會探測 `<cwd>/sdk/` 與 `CUBISM_CORE_DLL` 環境變數，使用者自備 DLL；找不到時 `.moc3 → .puppet` 的轉換功能會優雅停用，但已轉好的 `.puppet` rig 還是能正常播放。
+- `--include-data-files=plugins=plugins/=**/*.py`：把 `plugins/` 底下的 `.py` 當作**純資料**鏡射進產物，並保留目錄結構。**不要**改用 `--include-data-dir=plugins=plugins`：該選項只收「非程式碼檔」，而 plugin 全是 `.py`，結果一個檔都不會進產物，只會印 `Nuitka-Options:WARNING: No data files in directory 'plugins'`，做出來的 EXE 連 `plugins/` 目錄都沒有。**不要**對 `plugins` 用 `--include-package`——`plugins/` 底下沒有 `__init__.py`，不是 Python 套件；而且每個 plugin 的 `__init__.py` 是以「頂層模組」的方式自我 import（例如 `from ai_background_remover.ai_background_remover import ...`），把它們編譯成 `plugins.xxx` 子模組反而會破壞這條路徑。執行期 `plugin_manager.py` 會把 `<app_dir>/plugins` 插到 `sys.path`，再透過標準 `FileFinder` 從資料夾載入 `.py` 檔，因此 plugin 永遠是走 interpreter 路線，**不經過 Nuitka 的 frozen importer**。這同時也保留了使用者後續從 plugin 下載器新增 / 更新 plugin 的能力（不需要重新編譯整個 app）。**注意**：Puppet／Desktop Pet 現在由選用的外部 Rigora 提供；它不屬於 `plugins/` 或 `Imervue.*`，須於建置時另行收集。
+- **選用 Rigora**：先將已授權的 Rigora checkout／wheel 安裝到建置環境，再為下列命令加上 `--include-package=rigora --include-package-data=rigora`。前者收集程式，後者保留 `rigora/resources/` 中的 Imeru、桌寵腳本及 schema；未安裝 Rigora 時不要加這兩個旗標。不要打包原始碼樹的 `examples/`，其中可能有使用者自行放入的素材。
+- **Cubism Native SDK DLL 永遠不打包**：Live2D 的 Free Material License 禁止散佈 SDK 二進位。`rigora/puppet/cubism_native_bridge.py` 執行期會探測 `<cwd>/sdk/` 與 `CUBISM_CORE_DLL` 環境變數，使用者自備 DLL；找不到時 `.moc3 → .puppet` 的轉換功能會優雅停用，但已轉好的 `.puppet` rig 還是能正常播放。
 - `--python-flag=-m` + 結尾的 `Imervue`（套件目錄）：對含有 `__main__.py` 的套件，這是 Nuitka 官方推薦寫法，等同於 `python -m Imervue`。直接寫 `Imervue/__main__.py` 會跳警告。
 - 為什麼**沒有** `--include-data-dir=Imervue/multi_language=...`：那個目錄底下全是 `.py`（沒有 JSON / qm / po 之類的資料檔），是個正常的 Python 子套件，已經被 `--include-package=Imervue` 透過靜態 import 分析帶進去了。硬加 `--include-data-dir` 會跳「No data files in directory」警告，而且毫無作用。
 - 若想要單一檔案發佈，把 `--standalone` 換成 `--onefile`（啟動時會先解壓到 temp dir，啟動較慢；Linux / macOS 的 onefile 支援也比較新，發佈前請充分測試）。
@@ -364,9 +358,7 @@ python -m nuitka ^
   --include-package-data=imageio ^
   --include-package-data=rawpy ^
   "--include-data-files=plugins=plugins/=**/*.py" ^
-  --include-data-dir=examples=examples ^
   --noinclude-data-files=plugins/*/models/* ^
-  --noinclude-data-files=examples/**/__pycache__/* ^
   --noinclude-data-files=*.onnx ^
   --noinclude-data-files=*.pt ^
   --noinclude-data-files=*.pth ^
@@ -410,9 +402,7 @@ COMMON_ARGS=(
   --include-package-data=imageio
   --include-package-data=rawpy
   "--include-data-files=plugins=plugins/=**/*.py"
-  --include-data-dir=examples=examples
   --noinclude-data-files=plugins/*/models/*
-  --noinclude-data-files=examples/**/__pycache__/*
   --noinclude-data-files=*.onnx
   --noinclude-data-files=*.pt
   --noinclude-data-files=*.pth
@@ -591,9 +581,9 @@ Nuitka standalone 啟動後 import 這類含 C extension 的套件通常沒問�
 21. **浮水印疊加**：開啟浮水印對話框，套用文字 / 圖片浮水印於輸出——驗證 PIL 的 `ImageDraw` / `ImageFont` 在 frozen 下能載入字型資源
 22. **Export presets**：用 Web 1600px / Print 300dpi / Instagram 1080×1080 三種預設匯出——驗證 PIL 的 resample / DPI metadata 寫入正常
 23. **XMP sidecar**：載入含 其他相容 XMP 的照片管理工具 產生的 `.xmp` 圖片，確認星等 / 色彩標籤 / 開發參數被讀取；編輯後存檔再用 其他相容 XMP 的照片管理工具 開啟，確認 sidecar 能被對方讀回——驗證 `defusedxml` 被 Nuitka 靜態分析自動收進產物
-24. **Puppet 內建分頁**：切到 Puppet 分頁 → **Open Puppet…** → 選 `examples/puppet/imeru.puppet`（隨產物內附）→ rig 居中載入；點 Motions dock 任一動作（idle_look / wave / tap_head …）即播放。驗證 `Imervue.puppet.*` 子套件被 Nuitka 自動 walk 進去、`examples/` 透過 `--include-data-dir` 帶上、`QOpenGLWidget` 在 frozen 環境的 vertex-array 繪製路徑正常
-25. **Puppet 即時輸入（選用）**：開啟 Drag-Track（滑鼠拖動頭部）、Auto-Blink（自動眨眼）；裝有 `sounddevice` 時開 Mic Lip-Sync、裝有 OpenCV + MediaPipe 時開 Webcam Tracking——驗證這幾條選用依賴在 frozen 環境的 `try / except ImportError` fallback 正確（沒裝時不該 crash，只是該選項不可勾選）
-26. **Cubism `.moc3` 轉換器（需自備 SDK）**：把 Live2D Cubism Native SDK 解壓到 `<app_dir>/sdk/` 或設 `CUBISM_CORE_DLL` 環境變數 → File > Convert `.moc3`… → 任意 Cubism 模型 → 確認產出的 `.puppet` 能播放。驗證 ctypes 對 `Live2DCubismCore.dll` 的動態載入在 frozen 環境下走得通；沒裝 SDK 時這個 menu 項應該 disabled / 提示
+24. **選用 Rigora 分頁**：未包含 Rigora 的產物應顯示缺少套件提示，其他分頁正常。包含 Rigora 的產物，切到 Puppet → **File > Examples > Imeru**，確認套件內的角色置中載入，再播放 Motions dock 的動作。驗證 `rigora.*`、`rigora/resources/` 與 frozen `QOpenGLWidget` 路徑，並測試 Desktop Pet 的顯示、隱藏及關閉。
+25. **Puppet 即時輸入（產物已包含 Rigora 時）**：開啟 Drag-Track（滑鼠拖動頭部）、Auto-Blink（自動眨眼）；裝有 `sounddevice` 時開 Mic Lip-Sync、裝有 OpenCV + MediaPipe 時開 Webcam Tracking——驗證這幾條選用依賴在 frozen 環境的 `try / except ImportError` fallback 正確（沒裝時不該 crash，只是該選項不可勾選）
+26. **Cubism `.moc3` 轉換器（產物已包含 Rigora，需自備 SDK）**：把 Live2D Cubism Native SDK 解壓到 `<app_dir>/sdk/` 或設 `CUBISM_CORE_DLL` 環境變數 → File > Convert `.moc3`… → 任意 Cubism 模型 → 確認產出的 `.puppet` 能播放。驗證 ctypes 對 `Live2DCubismCore.dll` 的動態載入在 frozen 環境下走得通；沒裝 SDK 時這個 menu 項應該 disabled / 提示
 
 ## 7. PyInstaller vs Nuitka 怎麼選
 

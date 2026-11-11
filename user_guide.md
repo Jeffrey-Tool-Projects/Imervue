@@ -639,7 +639,9 @@ Imervue 支援外掛擴充功能。
 
 ## Puppet 工作區（Puppet 分頁）
 
-第四個頂層分頁 **Puppet** 是從零打造的 2D 綁骨偶動畫系統：網格變形、參數、動作、物理、表情、姿勢群組、對嘴、攝影機追蹤，**不依賴任何專有 SDK**、不使用 `live2d-py`，採用完全開放的 `.puppet` 檔案格式（規格見 [`Imervue/puppet/FORMAT.md`](Imervue/puppet/FORMAT.md)）。
+第四個頂層分頁 **Puppet** 是從零打造的 2D 綁骨偶動畫系統：網格變形、參數、動作、物理、表情、姿勢群組、對嘴、攝影機追蹤，**不依賴任何專有 SDK**、不使用 `live2d-py`，採用完全開放的 `.puppet` 檔案格式（規格見 [`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)）。
+
+Puppet 與 Desktop Pet 保留在 Imervue，但實作來自選用的外部 Rigora。原始碼安裝請在同一環境安裝已授權的 Rigora checkout 或 wheel；例如相鄰 checkout 使用 `python -m pip install "../Rigora[gui]"`。Rigora 目前未公開發行，凍結執行檔必須在建置時包含 Rigora，無法透過外部 pip 加入。未安裝時分頁顯示提示，其他功能仍可使用。
 
 > **完整教學**：倉庫根目錄的 [`puppet_guide.zh-TW.md`](puppet_guide.zh-TW.md) 是從全新安裝到 OBS 直播或產出 MP4 的端到端逐步走讀；本章只做摘要。以下選單名稱以英文介面為準。
 

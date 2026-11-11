@@ -15,7 +15,7 @@ tutorials use).
 
 The pure helpers (:func:`parse_chat_message`, :func:`match_keyword`)
 are stateless string operations, easy to unit-test; keyword matching goes
-through Imervue's :mod:`~Imervue.desktop_pet.command_parser`. The Qt wrapper
+through Rigora's :mod:`~rigora.desktop_pet.command_parser`. The Qt wrapper
 :class:`TwitchChatClient` owns a worker thread for the blocking
 ``recv`` loop and re-emits hits via thread-safe Qt signals.
 """
@@ -29,7 +29,6 @@ import threading
 
 from PySide6.QtCore import QObject, Signal
 
-from Imervue.desktop_pet.command_parser import match_command, rules_from_dict
 
 logger = logging.getLogger("Imervue.plugin.pet_integrations.twitch_chat_hook")
 
@@ -88,6 +87,7 @@ def match_keyword(text: str, triggers: dict[str, str]) -> str | None:
     way to prioritise overlapping triggers (place ``"raid"`` before
     ``"ai"`` if both fire on ``"raidaboo"``).
     """
+    from rigora.desktop_pet.command_parser import match_command, rules_from_dict
     return match_command(text, rules_from_dict(triggers))
 
 

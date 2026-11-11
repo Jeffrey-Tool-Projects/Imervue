@@ -232,11 +232,13 @@ The supported surface of `pet`:
 | `speak(line)` / `speak_notification(line)` | Show a speech bubble; the second also plays the notification sound |
 | `speech_on` | Whether the user has the speech bubble on |
 | `setting(key, default)` / `persist(**fields)` | Read / write the pet's saved settings; keys Imervue does not know are kept |
-| `add_integration(key, controller)` / `remove_integration(key)` / `integration(key)` | Hand the pet an `IntegrationController` (`Imervue.desktop_pet.pet_feature_base`) it stops when it shuts down |
+| `add_integration(key, controller)` / `remove_integration(key)` / `integration(key)` | Hand the pet an `IntegrationController` (`rigora.desktop_pet.pet_feature_base`) it stops when it shuts down |
 | `hit_triggered(str)`, `moved(int, int)`, `visibility_changed(bool)` | Signals: a click (the hit area's id, or `""`), a drag that ended, shown / hidden |
 
+The pet runtime is supplied by optional Rigora. Load controller modules only when Rigora is installed; plugins must still load without it and show an installation notice for unavailable pet features. Install an authorized Rigora checkout or wheel in a source environment, or use a frozen build that already includes Rigora.
+
 ```python
-from Imervue.desktop_pet.pet_feature_base import IntegrationController
+from rigora.desktop_pet.pet_feature_base import IntegrationController
 
 
 class ClockController(IntegrationController):

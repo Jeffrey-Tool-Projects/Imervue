@@ -14,6 +14,7 @@ webhook and Windows notifications — through the plugin API alone:
 from __future__ import annotations
 
 import importlib.util
+from importlib import import_module
 import logging
 import sys
 from typing import TYPE_CHECKING
@@ -24,13 +25,28 @@ from PySide6.QtWidgets import QDialog, QMessageBox
 from Imervue.multi_language.language_wrapper import language_wrapper
 from Imervue.plugin.plugin_base import ImervuePlugin
 
-from pet_integrations.integrations import INTEGRATIONS, SETTING_DEFAULTS, Integration
 from pet_integrations.translations import TRANSLATIONS
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QMenu
+    from pet_integrations.integrations import Integration
 
 logger = logging.getLogger("Imervue.plugin.pet_integrations")
+INTEGRATIONS: tuple[Integration, ...] | None = None
+
+
+def integration_definitions() -> tuple[Integration, ...]:
+    """Load controllers only when the optional character runtime is installed."""
+    if INTEGRATIONS is not None:
+        return INTEGRATIONS
+    try:
+        import_module("rigora")
+    except ModuleNotFoundError as error:
+        if error.name != "rigora":
+            raise
+        return ()
+    from pet_integrations import integrations
+    return integrations.INTEGRATIONS
 
 
 def _tr(key: str, default: str) -> str:
@@ -76,7 +92,15 @@ class PetIntegrationsPlugin(ImervuePlugin):
 
     def on_build_menu_bar(self, plugin_menu: QMenu) -> None:
         menu = plugin_menu.addMenu(_tr("pet_integrations_menu", "Desktop Pet Integrations"))
-        for integration in INTEGRATIONS:
+        definitions = integration_definitions()
+        if not definitions:
+            notice = menu.addAction(_tr(
+                "pet_integrations_rigora_missing",
+                "Install Rigora to enable desktop pet integrations.",
+            ))
+            notice.setEnabled(False)
+            return
+        for integration in definitions:
             action = menu.addAction(_tr(integration.label_key, integration.label))
             action.setCheckable(True)
             action.triggered.connect(
@@ -89,7 +113,7 @@ class PetIntegrationsPlugin(ImervuePlugin):
 
     def on_pet_created(self, pet) -> None:
         self._pet = pet
-        for integration in INTEGRATIONS:
+        for integration in integration_definitions():
             pet.add_integration(integration.key, integration.controller(pet))
             if self._restorable(pet, integration):
                 pet.integration(integration.key).set_enabled(True)
@@ -97,7 +121,7 @@ class PetIntegrationsPlugin(ImervuePlugin):
 
     def on_plugin_unloaded(self) -> None:
         if self._pet is not None:
-            for integration in INTEGRATIONS:
+            for integration in integration_definitions():
                 self._pet.remove_integration(integration.key)
         self._pet = None
         self._actions.clear()
@@ -140,7 +164,7 @@ class PetIntegrationsPlugin(ImervuePlugin):
 
     def _sync_actions(self) -> None:
         """Each entry checked while its integration runs, enabled once the pet exists."""
-        for integration in INTEGRATIONS:
+        for integration in integration_definitions():
             action = self._actions.get(integration.key)
             if action is None:
                 continue
@@ -162,6 +186,7 @@ class PetIntegrationsPlugin(ImervuePlugin):
             self._inform(_tr("pet_integrations_no_pet",
                              "Show the desktop pet first (Desktop Pet tab), then turn this on."))
             return
+        from pet_integrations.integrations import SETTING_DEFAULTS
         from pet_integrations.settings_dialog import IntegrationSettingsDialog
         current = {key: self._pet.setting(key, default) for key, default in SETTING_DEFAULTS.items()}
         dialog = IntegrationSettingsDialog(current, self.main_window)
@@ -174,7 +199,7 @@ class PetIntegrationsPlugin(ImervuePlugin):
     def apply_settings(self, values: dict[str, object]) -> None:
         """Save *values* on the pet and restart each running integration so it reads them."""
         self._pet.persist(**values)
-        for integration in INTEGRATIONS:
+        for integration in integration_definitions():
             controller = self._pet.integration(integration.key)
             if controller is not None and controller.is_enabled():
                 controller.shutdown()

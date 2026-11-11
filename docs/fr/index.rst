@@ -1,6 +1,8 @@
 Guide de l'utilisateur Imervue
 ==============================
 
+Puppet et Desktop Pet utilisent désormais le paquet externe Rigora. Imervue conserve leurs onglets et les commandes CLI/MCP existantes, mais ne fournit plus une seconde implémentation d’animation. Rigora est actuellement un dépôt privé sans paquet publié publiquement. Avec un checkout voisin autorisé, exécutez ``python -m pip install "../Rigora[gui]"`` dans le même environnement Python, puis redémarrez Imervue. Sans Rigora, ces onglets affichent une invitation à l’installer et les autres fonctions restent disponibles. Rigora gère ses propres réglages et son cache de modèles ; le premier démarrage intégré importe les préférences existantes pertinentes sans partager le fichier de configuration. Installez Rigora séparément depuis un checkout ou wheel autorisé ; les paquets consommateurs publics ne déclarent pas de dépendance Rigora non publiée. Les exécutables figés publics excluent Rigora privé sauf s’il est fourni à la compilation. Une installation externe avec pip ne peut pas l’ajouter à un exécutable figé existant.
+
 Les résultats de recherche de l’arborescence s’ouvrent avec Entrée ou un double-clic ; leur localisation reste une action distincte. Les noms et chemins relatifs sont séparés, et les résultats se replient sans effacer la requête. Les commandes supérieures indiquent si le tri est global ou propre au dossier, avec des sens explicites pour les dates et tailles et une réinitialisation visible. La recherche affiche le dossier et la portée des sous-dossiers ; les filtres d’images indépendants affichent les conditions supprimables, le nombre de correspondances et signalent une image ouverte explicitement conservée malgré les filtres.
 
 Modify distingue l’écrasement de l’original de l’enregistrement d’une copie et affiche la destination. Le recadrage précise aussi quand il écrit dans l’original. Les formats source en lecture seule utilisent une copie ; un échec d’écriture conserve les modifications et un enregistrement réussi affiche le chemin réel. L’envoi vers Paint propose l’original ou le résultat développé actuel en pleine qualité, avec un choix explicite des annotations, dans un nouveau document. Les documents Paint existants et leurs historiques d’annulation sont conservés.
@@ -950,7 +952,7 @@ Flux de travail de bout en bout
 Essayer un exemple complet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Imeru** (``examples/puppet/imeru.puppet``). Imeru est la mascotte originale en pied d’Imervue, redessinée dans un style anime moderne avec des cheveux bleu-vert souples, une veste asymétrique cintrée, des manches froncées, un pan latéral superposé et des bottes détaillées. Le modèle de 1024 × 1664 utilise les illustrations transparentes originales de ``examples/puppet/imeru/artwork/``. Des maillages continus du corps et des manches préservent le dessin pendant les mouvements de tête, de cheveux et de bras ; des éléments faciaux distincts assurent les clignements, le regard et la parole. Les paramètres d’entrée standard, huit mouvements, sept expressions et les interactions tête/corps sont conservés. ``py -3 examples/puppet/imeru/build.py`` reconstruit l’archive à partir de ces ressources. Ouvrez-la via **File > Examples > Imeru** ou **Open Puppet…**.
+**Imeru** (``../Rigora/examples/puppet/imeru.puppet``). Imeru est la mascotte originale en pied d’Imervue, redessinée dans un style anime moderne avec des cheveux bleu-vert souples, une veste asymétrique cintrée, des manches froncées, un pan latéral superposé et des bottes détaillées. Le modèle de 1024 × 1664 utilise les illustrations transparentes originales de ``../Rigora/examples/puppet/imeru/artwork/``. Des maillages continus du corps et des manches préservent le dessin pendant les mouvements de tête, de cheveux et de bras ; des éléments faciaux distincts assurent les clignements, le regard et la parole. Les paramètres d’entrée standard, huit mouvements, sept expressions et les interactions tête/corps sont conservés. ``py -3 ../Rigora/examples/puppet/imeru/build.py`` reconstruit l’archive à partir de ces ressources. Ouvrez-la via **File > Examples > Imeru** ou **Open Puppet…**.
 
 Le rig comporte tous les paramètres standard Cubism (``ParamAngleX/Y/Z``,
 ``ParamEyeLOpen/ROpen``, ``ParamBreath``, ``ParamMouthOpenY``, …) plus
@@ -973,7 +975,7 @@ Mouvements — un simple clic associe le mouvement et démarre immédiatement la
    build empaquetée : exécutez l'exécutable / bundle d'application ``Imervue``. Le
    répertoire ``examples/`` est intégré aux builds Nuitka et PyInstaller ; une
    installation pip / wheel ne l'inclut pas (depuis une copie des sources, les rigs
-   se trouvent dans ``examples/puppet/``).
+   se trouvent dans ``../Rigora/examples/puppet/``).
 2. Cliquez sur l'onglet **Puppet** en haut de la fenêtre.
 3. **File > Examples > Imeru** (ou la liste déroulante
    **Examples ▾** de la barre d'outils). Le rig se charge centré et
@@ -1029,7 +1031,7 @@ Exemple de ``puppet.json`` de premier niveau ::
    }
 
 La spécification complète (drawables, déformateurs, paramètres, mouvements, expressions,
-pose, physique) se trouve dans ``Imervue/puppet/FORMAT.md`` du dépôt. JSON +
+pose, physique) se trouve dans `Rigora FORMAT.md <https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md>`_ du dépôt. JSON +
 PNG uniquement — aucun binaire propriétaire, entièrement diffable via git.
 
 Le format est ouvert et vérifiable par machine :
@@ -1040,7 +1042,7 @@ Le format est ouvert et vérifiable par machine :
 - Quatre JSON Schemas (draft 2020-12) — ``puppet``, ``motion``, ``expression``
   et ``physics`` — sont publiés dans ``docs/schemas/`` ; les éditeurs qui suivent
   ``$schema`` vérifient un fichier au fil de la saisie.
-- ``py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet`` (MCP
+- ``py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet`` (MCP
   ``puppet_validate``) vérifie un fichier par rapport aux schémas, aux règles du chargeur
   et aux vérifications du rig ; ``puppet-schema`` (MCP ``puppet_schema``) affiche un schéma.
 - ``docs/examples/read_puppet.py`` lit un ``.puppet`` avec la seule bibliothèque standard
@@ -1065,7 +1067,7 @@ aussi les entrées de la barre d'outils.
      - Rôle
    * - Open Puppet… / Examples ▾
      - Charger un ``.puppet`` depuis le disque (menu **File**), ou choisir l'un des
-       rigs fournis dans ``examples/puppet/`` depuis **Examples ▾** (le bouton de la
+       rigs fournis dans ``../Rigora/examples/puppet/`` depuis **Examples ▾** (le bouton de la
        barre d'outils, aussi dans **File**)
    * - Import PNG… / Import PSD… / Import Cubism…
      - Créer un maillage automatique pour un PNG, séparer un PSD par calques, ou échantillonner
@@ -1298,12 +1300,7 @@ L'onglet expose trois chemins de chargement :
 
 * **Open Puppet…** — choisissez n'importe quel fichier ``.puppet``
   sur disque.
-* **Load bundled Imeru** — ouvre le rig livré sous
-  ``examples/puppet/imeru.puppet``. Le résolveur consulte
-  d'abord ``examples_dir()`` (à côté du programme dans les builds
-  empaquetés Nuitka / PyInstaller, la racine du dépôt dans une
-  copie des sources) puis se rabat sur une recherche relative au
-  dossier de travail courant.
+* **Load bundled Imeru** — Rigora charge la ressource installée ``rigora/resources/examples/puppet/imeru.puppet`` via ``rigora.system.app_paths.examples_dir()``. Si elle manque, réinstallez le paquet Rigora autorisé avec ses ressources.
 * **Dernier rig** — le rig chargé précédemment se restaure
   automatiquement au démarrage d'Imervue depuis le champ de
   réglages ``last_rig_path`` ; l'onglet Desktop Pet ré-instancie
@@ -1623,7 +1620,7 @@ jeu de salutations intégré ; le chemin de script persisté est
 effacé afin que le prochain lancement ne le recharge pas.
 
 Un exemple fonctionnel se trouve à
-``examples/desktop_pet/imeru.petscript.json`` — six
+``../Rigora/examples/desktop_pet/imeru.petscript.json`` — six
 salutations, une réplique pour chaque moment de la journée, deux
 paniers de zones cliquables (``Head`` / ``Body``), des répliques
 pour cinq mouvements (wave / greet / surprised / sleepy / shy) et
@@ -1817,13 +1814,7 @@ qu'aucun outil tiers de gestion de fenêtres ne contourne l'attribut
 (certains gestionnaires de fenêtres personnalisés sous Linux le
 font). Sous Windows / macOS cela devrait « juste fonctionner ».
 
-**« Load bundled Imeru » signale que le fichier est introuvable.**
-Le résolveur consulte d'abord ``examples_dir()`` (l'emplacement sûr
-en mode gelé utilisé par les builds empaquetés) puis se rabat sur
-un chemin relatif au CWD. Si aucun ne contient le rig, l'étiquette
-d'état fait remonter le chemin attendu. Vérifiez que le répertoire
-``examples/`` a bien été livré avec votre installation — pour les
-checkouts source, lancez Imervue depuis la racine du dépôt.
+**« Load bundled Imeru » signale que le fichier est introuvable.** Rigora charge la ressource installée ``rigora/resources/examples/puppet/imeru.puppet`` via ``rigora.system.app_paths.examples_dir()``. Si elle manque, réinstallez le paquet Rigora autorisé avec ses ressources.
 
 **Le pet ne parle pas quand on clique.** Trois vérifications :
 

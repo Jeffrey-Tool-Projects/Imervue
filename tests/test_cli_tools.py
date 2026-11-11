@@ -222,6 +222,8 @@ def test_suffix_and_extension():
 
 @pytest.mark.parametrize("command", [c for c in _WRITERS if c not in _NOT_A_STILL])
 def test_every_writer_writes_an_image_or_rig(tmp_path, command):
+    if command == "puppet-from-png":
+        pytest.importorskip("rigora", reason="optional Rigora integration")
     src = (_subject_png(tmp_path / "in.png") if command == "puppet-from-png"
            else _photo(tmp_path / "in.png"))
     out = tmp_path / "out"
@@ -376,6 +378,7 @@ def test_reporter_without_json_prints_key_value_lines(tmp_path, capsys):
 
 
 def test_puppet_round_trip_through_the_cli(tmp_path, capsys):
+    pytest.importorskip("rigora", reason="optional Rigora integration")
     src = _subject_png(tmp_path / "rig.png")
     assert main(["puppet-from-png", str(src), "--cell-size", "16",
                  "--out", str(tmp_path / "out")]) == 0

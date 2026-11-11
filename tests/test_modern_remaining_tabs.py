@@ -81,7 +81,8 @@ def test_existing_scroll_area_is_not_nested_in_another_scroll_area(qapp):
 
 
 def test_pet_categories_scroll_to_every_last_control_without_creating_overlay(qapp, scale):
-    from Imervue.desktop_pet.pet_workspace import PetWorkspace
+    pytest.importorskip("rigora", reason="optional Rigora integration")
+    from rigora.desktop_pet.pet_workspace import PetWorkspace
     from Imervue.user_settings.user_setting_dict import user_setting_dict
     user_setting_dict["desktop_pet"] = {}
     workspace = PetWorkspace()
@@ -107,8 +108,9 @@ def test_pet_categories_scroll_to_every_last_control_without_creating_overlay(qa
 
 
 def test_puppet_loaded_inspector_and_transport_remain_usable(qapp, scale):
-    from Imervue.puppet.document import Parameter, PuppetDocument
-    from Imervue.puppet.workspace import PuppetWorkspace
+    pytest.importorskip("rigora", reason="optional Rigora integration")
+    from rigora.puppet.document import Parameter, PuppetDocument
+    from rigora.puppet.workspace import PuppetWorkspace
     workspace = PuppetWorkspace()
     workspace.resize(1280, 800)
     workspace.show()

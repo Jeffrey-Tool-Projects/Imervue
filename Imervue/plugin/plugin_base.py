@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QMenu, QTabWidget
     from Imervue.Imervue_main_window import ImervueMainWindow
-    from Imervue.desktop_pet.pet_window import PetWindow
+    from rigora.desktop_pet.pet_window import PetWindow
     from Imervue.gpu_image_view.gpu_image_view import GPUImageView
 
 
@@ -136,7 +136,7 @@ class ImervuePlugin:
           pet's saved settings, which keep keys Imervue does not know;
         * ``add_integration(key, controller)`` / ``remove_integration(key)`` /
           ``integration(key)`` hand the pet an
-          :class:`~Imervue.desktop_pet.pet_feature_base.IntegrationController`
+          :class:`~rigora.desktop_pet.pet_feature_base.IntegrationController`
           it stops when it shuts down (remove it in ``on_plugin_unloaded``);
         * the signals ``hit_triggered(str)`` (a click, with the hit area's id or
           ``""``), ``moved(int, int)`` and ``visibility_changed(bool)``.

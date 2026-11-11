@@ -17,6 +17,8 @@ import socket
 
 import pytest
 
+pytest.importorskip("rigora", reason="external desktop-pet runtime is optional")
+
 from pet_integrations.twitch_chat_hook import (
     TwitchChatClient,
     coerce_triggers,

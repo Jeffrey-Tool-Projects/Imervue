@@ -332,7 +332,9 @@ class MainWindowLayoutMixin:
 
     def _build_puppet_workspace(self) -> None:
         """The Puppet tab's 2D rigged-puppet workspace, in its page."""
-        from Imervue.puppet import PuppetWorkspace
+        if not optional_tabs.prepare_workspace(self._puppet_page):
+            return
+        from rigora.puppet import PuppetWorkspace
         self.puppet_workspace = PuppetWorkspace(parent=self._puppet_page)
         self._puppet_page.layout().addWidget(self.puppet_workspace)
 
@@ -343,7 +345,9 @@ class MainWindowLayoutMixin:
         top-level window. The tray icon lets the user show or hide the pet
         without finding the tab, and exists only where the platform has a tray.
         """
-        from Imervue.desktop_pet import PetTrayIcon, PetWorkspace
+        if not optional_tabs.prepare_workspace(self._pet_page):
+            return
+        from rigora.desktop_pet import PetTrayIcon, PetWorkspace
         self.pet_workspace = PetWorkspace(parent=self._pet_page)
         self._pet_page.layout().addWidget(self.pet_workspace)
         if PetTrayIcon.is_available():

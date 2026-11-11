@@ -10,6 +10,7 @@ to show on launch.
 from __future__ import annotations
 
 from Imervue.user_settings.user_setting_dict import user_setting_dict
+from Imervue.system.rigora_integration import initialize_embedded_rigora
 
 PUPPET_TAB = "puppet_tab_enabled"
 DESKTOP_PET_TAB = "desktop_pet_tab_enabled"
@@ -30,5 +31,24 @@ def set_tab_enabled(key: str, enabled: bool) -> None:
 
 def pet_shows_on_launch() -> bool:
     """Whether the desktop pet is set to appear at startup (its tab must then build at once)."""
-    from Imervue.desktop_pet import settings as pet_settings
+    if not initialize_embedded_rigora():
+        return False
+    from rigora.desktop_pet import settings as pet_settings
     return bool(pet_settings.load().get("show_on_launch"))
+
+
+def prepare_workspace(page) -> bool:
+    """Initialize Rigora or display one actionable notice in its optional tab."""
+    if initialize_embedded_rigora():
+        return True
+    from PySide6.QtWidgets import QLabel
+    from Imervue.system.rigora_integration import INSTALL_MESSAGE
+    from Imervue.multi_language.language_wrapper import language_wrapper
+
+    if page.findChild(QLabel, "rigoraMissingNotice") is None:
+        text = language_wrapper.language_word_dict.get("rigora_missing_notice", INSTALL_MESSAGE)
+        notice = QLabel(text, page)
+        notice.setObjectName("rigoraMissingNotice")
+        notice.setWordWrap(True)
+        page.layout().addWidget(notice)
+    return False

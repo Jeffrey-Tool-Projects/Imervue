@@ -22,6 +22,7 @@ _KOREAN_TRC0ACC6A9C79020C9 = '사용자 지정'
 _KOREAN_TRCC3DC5D020B9DECD = '창에 맞추기'
 
 korean_word_dict = {
+    "rigora_missing_notice": 'Puppet과 Desktop Pet에는 Rigora가 필요합니다. 소스 설치에서는 같은 Python 환경에 접근 권한이 있는 Rigora checkout 또는 wheel을 설치한 뒤 Imervue를 다시 시작하세요. 패키징 실행 파일은 빌드 시 Rigora가 포함된 버전이 필요하며 외부 pip로 추가할 수 없습니다.',
     "heif_install_hint": "HEIC 이미지를 보려면 pillow-heif를 설치하세요.",
     "exif_location": "위치",
     "exif_coordinates": "좌표",

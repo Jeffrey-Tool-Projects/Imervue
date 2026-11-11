@@ -1,5 +1,7 @@
 # 使用 PyInstaller 打包 Imervue
 
+Puppet／Desktop Pet 是選用的外部 Rigora 功能。私人 Rigora 尚未公開發行；需要這些功能的產物，必須先從授權 checkout／wheel 安裝至建置環境。直接命令在已安裝授權 Rigora 時加入 `--collect-all rigora`。專案的 `Imervue.spec` 與 `Imervue_mac.spec` 會以 `find_spec("rigora")` 判斷，再條件式執行 `collect_all("rigora")` 收集程式及資源；未安裝時略過。 公開凍結產物未提供 Rigora 時保留安裝提示；外部 pip 無法將它加入既有執行檔。
+
 本文件說明如何用 PyInstaller 將 Imervue 打包成可獨立執行的應用程式，並提供 **Windows / Linux / macOS** 三種平台的命令與注意事項。
 
 > PyInstaller 基本上是跨平台的，**但只能在目標平台自己打包目標平台的產物**——不能在 Windows 上交叉編譯出 Linux / mac 版。需要三個平台就得跑三台機器（或三個 CI runner）。
@@ -111,7 +113,6 @@ pyinstaller ^
   --collect-data qt_material ^
   --add-data "Imervue\multi_language;Imervue\multi_language" ^
   --add-data "plugins;plugins" ^
-  --add-data "examples;examples" ^
   --add-data "exe;exe" ^
   --add-data "THIRD_PARTY_LICENSES.md;." ^
   --add-data "LICENSE;." ^
@@ -133,7 +134,6 @@ pyinstaller `
   --collect-data qt_material `
   --add-data "Imervue\multi_language;Imervue\multi_language" `
   --add-data "plugins;plugins" `
-  --add-data "examples;examples" `
   --add-data "exe;exe" `
   --add-data "THIRD_PARTY_LICENSES.md;." `
   --add-data "LICENSE;." `
@@ -143,7 +143,7 @@ pyinstaller `
 **一行版**（任何 shell 都能用）：
 
 ```
-pyinstaller --noconfirm --windowed --name Imervue --icon exe\Imervue.ico --paths .venv --collect-all imageio --collect-all rawpy --collect-submodules Imervue --collect-submodules PySide6 --collect-data qt_material --add-data "Imervue\multi_language;Imervue\multi_language" --add-data "plugins;plugins" --add-data "examples;examples" --add-data "exe;exe" --add-data "THIRD_PARTY_LICENSES.md;." --add-data "LICENSE;." Imervue\__main__.py
+pyinstaller --noconfirm --windowed --name Imervue --icon exe\Imervue.ico --paths .venv --collect-all imageio --collect-all rawpy --collect-submodules Imervue --collect-submodules PySide6 --collect-data qt_material --add-data "Imervue\multi_language;Imervue\multi_language" --add-data "plugins;plugins" --add-data "exe;exe" --add-data "THIRD_PARTY_LICENSES.md;." --add-data "LICENSE;." Imervue\__main__.py
 ```
 
 產物：`dist\Imervue\Imervue.exe`。
@@ -163,7 +163,6 @@ pyinstaller \
   --collect-data qt_material \
   --add-data "Imervue/multi_language:Imervue/multi_language" \
   --add-data "plugins:plugins" \
-  --add-data "examples:examples" \
   --add-data "exe:exe" \
   --add-data "THIRD_PARTY_LICENSES.md:." \
   --add-data "LICENSE:." \
@@ -200,7 +199,6 @@ pyinstaller \
   --collect-data qt_material \
   --add-data "Imervue/multi_language:Imervue/multi_language" \
   --add-data "plugins:plugins" \
-  --add-data "examples:examples" \
   --add-data "exe:exe" \
   --add-data "THIRD_PARTY_LICENSES.md:." \
   --add-data "LICENSE:." \
@@ -245,8 +243,8 @@ xcrun stapler staple dist/Imervue.app
 - `--collect-submodules PySide6`：避免少數 Qt 子模組漏掉。
 - `--collect-submodules Imervue`：**必要**。plugin 是執行期從 `<app_dir>/plugins` 載入的，靜態分析看不到它們 `from Imervue.plugin.model_dir import ...` 之類的 import，只跟著主程式走的話那些模組不會進產物，plugin 就會以 `ModuleNotFoundError` 載入失敗（Nuitka 那邊實測掛掉 17 個裡的 10 個，見 `nuitka.md` §2.4）。
 - `--collect-data qt_material`：qt-material 的 QSS / 資源。
-- `--add-data`：語言檔、`plugins/`（外部 plugin 目錄）、`examples/`（內附 `examples/puppet/imeru.puppet` 示範 rig 讓使用者第一次點 Puppet 分頁的「Open Puppet…」就有東西可開）。**Windows 用 `;`，Linux / macOS 用 `:`** 分隔來源與目的。**注意**：Puppet 從 plugin 升格為內建分頁（`Imervue/puppet/`），會跟其他 `Imervue.*` 子套件一起被 PyInstaller 的靜態分析自動帶進來，不需要任何 `--add-data` 或 `--collect-all=Imervue.puppet`。
-- **Cubism Native SDK DLL 永遠不打包**：Live2D 的 Free Material License 禁止散佈 SDK 二進位。`Imervue/puppet/cubism_native_bridge.py` 執行期會探測 `<cwd>/sdk/` 與 `CUBISM_CORE_DLL` 環境變數，使用者自備 DLL；找不到時 `.moc3 → .puppet` 的轉換功能會優雅停用，但已轉好的 `.puppet` rig 還是能正常播放。
+- `--add-data`：語言檔、`plugins/` 等宿主資料。**Windows 用 `;`，Linux / macOS 用 `:`** 分隔來源與目的。Puppet／Desktop Pet 由外部 Rigora 提供；安裝授權 Rigora 後，直接命令加 `--collect-all rigora`，收集程式及 `rigora/resources/`，不要加入原始碼樹的 `examples/`。未安裝 Rigora 時省略此旗標。
+- **Cubism Native SDK DLL 永遠不打包**：Live2D 的 Free Material License 禁止散佈 SDK 二進位。`rigora/puppet/cubism_native_bridge.py` 執行期會探測 `<cwd>/sdk/` 與 `CUBISM_CORE_DLL` 環境變數，使用者自備 DLL；找不到時 `.moc3 → .puppet` 的轉換功能會優雅停用，但已轉好的 `.puppet` rig 還是能正常播放。
 - `defusedxml`：`Imervue/image/xmp_sidecar.py` 會用 `defusedxml` 做 XMP sidecar 的安全 XML 解析（bandit `B405`–`B411`）。PyInstaller 的靜態 import 分析會自動把它收進來，不需要額外 `--collect-all defusedxml`。但**務必確認 venv 已 `pip install defusedxml`**——沒裝的話 XMP 讀寫功能在 frozen 產物中會拋 `ModuleNotFoundError: defusedxml` 而非 silent fallback。
 
 ## 3. 使用 auto-py-to-exe（僅 Windows，GUI 方式）
@@ -296,16 +294,26 @@ pyinstaller --noconfirm Imervue.spec
 在 `.spec` 中可用 `datas=[...]`、`hiddenimports=[...]` 管理資源與隱藏匯入。同一份 `.spec` 在三個平台通常都能跑——只要把 `Analysis` 裡的 `datas` 路徑用 Python 的 `os.path.join()` 組起來就行，分隔符由 OS 決定，不會卡 `;` / `:`。
 
 ```python
+from importlib.util import find_spec
+from PyInstaller.utils.hooks import collect_all
 import os
+
 datas = [
     (os.path.join('Imervue', 'multi_language'),
      os.path.join('Imervue', 'multi_language')),
     ('plugins', 'plugins'),
-    ('examples', 'examples'),
     ('exe', 'exe'),
     ('THIRD_PARTY_LICENSES.md', '.'),
     ('LICENSE', '.'),
 ]
+binaries = []
+hiddenimports = []
+if find_spec('rigora') is not None:
+    rigora_data, rigora_binaries, rigora_imports = collect_all('rigora')
+    datas += rigora_data
+    binaries += rigora_binaries
+    hiddenimports += rigora_imports
+# 將這三份清單傳給 Analysis 的同名參數。
 ```
 
 ### 5.1 排除模型權重（必做）
@@ -377,6 +385,6 @@ find dist/Imervue -name '*.onnx' -o -name '*.pt' -o -name '*.safetensors'
 21. **浮水印疊加**：開啟浮水印對話框，套用文字 / 圖片浮水印於輸出——驗證 PIL 的 `ImageDraw` / `ImageFont` 在 frozen 下能載入字型資源
 22. **Export presets**：用 Web 1600px / Print 300dpi / Instagram 1080×1080 三種預設匯出——驗證 PIL 的 resample / DPI metadata 寫入正常
 23. **XMP sidecar**：載入含 其他相容 XMP 的照片管理工具 產生的 `.xmp` 圖片，確認星等 / 色彩標籤 / 開發參數被讀取；編輯後存檔再用 其他相容 XMP 的照片管理工具 開啟，確認 sidecar 能被對方讀回——驗證 `defusedxml` 被打包進產物
-24. **Puppet 內建分頁**：切到 Puppet 分頁 → **Open Puppet…** → 選 `examples/puppet/imeru.puppet`（隨產物內附）→ rig 居中載入；點 Motions dock 任一動作（idle_look / wave / tap_head …）即播放。驗證 `Imervue.puppet.*` 子套件被 PyInstaller 自動收進、`examples/` 透過 `--add-data` 帶上、`QOpenGLWidget` 在 frozen 環境的 vertex-array 繪製路徑正常
-25. **Puppet 即時輸入（選用）**：開啟 Drag-Track（滑鼠拖動頭部）、Auto-Blink（自動眨眼）；裝有 `sounddevice` 時開 Mic Lip-Sync、裝有 OpenCV + MediaPipe 時開 Webcam Tracking——驗證這幾條選用依賴在 frozen 環境的 `try / except ImportError` fallback 正確（沒裝時不該 crash，只是該選項不可勾選）
-26. **Cubism `.moc3` 轉換器（需自備 SDK）**：把 Live2D Cubism Native SDK 解壓到 `<app_dir>/sdk/` 或設 `CUBISM_CORE_DLL` 環境變數 → File > Convert `.moc3`… → 任意 Cubism 模型 → 確認產出的 `.puppet` 能播放。驗證 ctypes 對 `Live2DCubismCore.dll` 的動態載入在 frozen 環境下走得通；沒裝 SDK 時這個 menu 項應該 disabled / 提示
+24. **選用 Rigora 分頁**：未包含 Rigora 的產物應顯示缺少套件提示，其他分頁正常。包含 Rigora 的產物，切到 Puppet → **File > Examples > Imeru**，確認套件內的角色置中載入，再播放 Motions dock 的動作。驗證 `rigora.*`、`rigora/resources/` 與 frozen `QOpenGLWidget` 路徑，並測試 Desktop Pet 的顯示、隱藏及關閉。
+25. **Puppet 即時輸入（產物已包含 Rigora 時）**：開啟 Drag-Track（滑鼠拖動頭部）、Auto-Blink（自動眨眼）；裝有 `sounddevice` 時開 Mic Lip-Sync、裝有 OpenCV + MediaPipe 時開 Webcam Tracking——驗證這幾條選用依賴在 frozen 環境的 `try / except ImportError` fallback 正確（沒裝時不該 crash，只是該選項不可勾選）
+26. **Cubism `.moc3` 轉換器（產物已包含 Rigora，需自備 SDK）**：把 Live2D Cubism Native SDK 解壓到 `<app_dir>/sdk/` 或設 `CUBISM_CORE_DLL` 環境變數 → File > Convert `.moc3`… → 任意 Cubism 模型 → 確認產出的 `.puppet` 能播放。驗證 ctypes 對 `Live2DCubismCore.dll` 的動態載入在 frozen 環境下走得通；沒裝 SDK 時這個 menu 項應該 disabled / 提示

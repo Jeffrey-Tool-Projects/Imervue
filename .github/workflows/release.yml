@@ -37,11 +37,8 @@
 #     plugins without rebuilding. It has to be the data-*files* form
 #     with a pattern: ``--include-data-dir`` copies "all non-code
 #     files", so it skipped every plugin .py and only printed "No data
-#     files in directory 'plugins'". The Puppet tab is no longer here
-#     (it was promoted to a built-in subpackage at Imervue/puppet/).
-#   - ``--include-data-dir=examples=examples`` ships the demo
-#     ``examples/puppet/imeru.puppet`` rig so the Puppet tab has
-#     something to open the first time a user clicks **Open Puppet…**.
+#     files in directory 'plugins'". Puppet and Desktop Pet are supplied
+#     by the optional Rigora package, including its example resources.
 #   - The Cubism Native SDK DLL is **never** bundled (Live2D's Free
 #     Material License forbids redistribution). The runtime probes
 #     ``<cwd>/sdk/`` and the ``CUBISM_CORE_DLL`` env var; users supply
@@ -223,6 +220,12 @@ jobs:
           # than dropping the rule: everything else here stays wheels-only.
           pip install --only-binary :all: --no-binary nuitka \
             "nuitka==4.1.3" "ordered-set==4.1.0" "zstandard==0.25.0"
+      - name: Detect optional Rigora package
+        shell: pwsh
+        run: |
+          $available = python -c "from importlib.util import find_spec; print(int(find_spec('rigora') is not None))"
+          $options = if ($available -eq '1') { '--include-package=rigora --include-package-data=rigora' } else { '' }
+          "RIGORA_NUITKA_ARGS=$options" >> $env:GITHUB_ENV
       - name: Run Nuitka
         shell: cmd
         run: |
@@ -232,6 +235,7 @@ jobs:
             --enable-plugin=pyside6 ^
             --python-flag=-m ^
             --include-package=Imervue ^
+            %RIGORA_NUITKA_ARGS% ^
             --include-package=qt_material ^
             --include-package=imageio ^
             --include-package=rawpy ^
@@ -239,9 +243,7 @@ jobs:
             --include-package-data=imageio ^
             --include-package-data=rawpy ^
             "--include-data-files=plugins=plugins/=**/*.py" ^
-            --include-data-dir=examples=examples ^
             --noinclude-data-files=plugins/*/models/* ^
-            --noinclude-data-files=examples/**/__pycache__/* ^
             --noinclude-data-files=*.onnx ^
             --noinclude-data-files=*.pt ^
             --noinclude-data-files=*.pth ^

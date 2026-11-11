@@ -1,6 +1,8 @@
 Imervue User Guide
 ==================
 
+Puppet and Desktop Pet now use the external Rigora package. Imervue keeps their tabs and existing CLI/MCP commands, but does not ship a second animation runtime. Rigora is currently a private repository without a public package release. With an authorized sibling checkout, install ``python -m pip install "../Rigora[gui]"`` in the same Python environment, then restart Imervue. Without Rigora, these tabs show an installation notice and the rest of Imervue remains available. Rigora owns its settings and model cache; the first embedded launch imports relevant existing preferences without sharing the settings file. Install Rigora separately from an authorized checkout or wheel; public consumer packages do not declare an unpublished Rigora dependency. Public frozen executables exclude private Rigora unless it is supplied when building them. Installing Rigora with external pip cannot add it to an existing frozen executable.
+
 File-tree search results open with Enter or a double-click; Locate remains a separate action. Results distinguish filenames from relative paths and can be collapsed without clearing the query. The controls above the tree show whether sorting applies globally or to this folder, with meaningful date/size directions and a visible reset. Search shows its folder and descendant scope; the independent image filters show removable conditions, matching counts and when an explicitly opened image is kept despite not matching.
 
 Modify distinguishes overwriting the original from saving a copy and shows the destination. Crop also states when it writes the original. Read-only source formats use a copy; failed writes preserve edits, and successful saves report the actual path. Sending an image to Paint offers the original or the current full-quality developed result, with an explicit annotation choice, in a new document. Existing Paint documents and Undo histories remain intact.
@@ -937,7 +939,7 @@ End-to-end workflow
 Try a worked example
 ^^^^^^^^^^^^^^^^^^^^
 
-**Imeru** (``examples/puppet/imeru.puppet``). Imeru is Imervue's original full-body mascot, redrawn in a modern anime style with flowing teal hair, a fitted asymmetric jacket, gathered sleeves, a layered side sash and detailed boots. The 1024 × 1664 model uses the original transparent illustrations stored in ``examples/puppet/imeru/artwork/``. Continuous body and sleeve meshes preserve the drawing while animating the head, hair and arms; separate facial artwork supplies blinking, gaze and speech. It retains the standard input parameters, eight motions, seven expressions and head/body interactions. ``py -3 examples/puppet/imeru/build.py`` rebuilds the bundled archive from these stored assets. Open it through **File > Examples > Imeru** or **Open Puppet…**.
+**Imeru** (``../Rigora/examples/puppet/imeru.puppet``). Imeru is Imervue's original full-body mascot, redrawn in a modern anime style with flowing teal hair, a fitted asymmetric jacket, gathered sleeves, a layered side sash and detailed boots. The 1024 × 1664 model uses the original transparent illustrations stored in ``../Rigora/examples/puppet/imeru/artwork/``. Continuous body and sleeve meshes preserve the drawing while animating the head, hair and arms; separate facial artwork supplies blinking, gaze and speech. It retains the standard input parameters, eight motions, seven expressions and head/body interactions. ``py -3 ../Rigora/examples/puppet/imeru/build.py`` rebuilds the bundled archive from these stored assets. Open it through **File > Examples > Imeru** or **Open Puppet…**.
 
 The rig carries every Cubism-standard parameter (``ParamAngleX/Y/Z``,
 ``ParamEyeLOpen/ROpen``, ``ParamBreath``, ``ParamMouthOpenY``, …) plus
@@ -961,7 +963,7 @@ dock — single-click binds the motion and starts playback immediately.
    packaged build: run the ``Imervue`` executable / app bundle. The
    ``examples/`` directory is bundled into the Nuitka and PyInstaller
    builds; a pip / wheel install does not include it (from a source
-   checkout the rigs are in ``examples/puppet/``).
+   checkout the rigs are in ``../Rigora/examples/puppet/``).
 2. Click the **Puppet** tab at the top of the window.
 3. **File > Examples > Imeru** (or the toolbar's
    **Examples ▾** dropdown). The rig loads centred and the
@@ -1020,7 +1022,7 @@ Top-level ``puppet.json`` example::
    }
 
 The full specification (drawables, deformers, parameters, motions, expressions,
-pose, physics) lives at ``Imervue/puppet/FORMAT.md`` in the repo. JSON +
+pose, physics) lives at `Rigora FORMAT.md <https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md>`_ in the repo. JSON +
 PNG only — no proprietary binary, fully diffable through git.
 
 The format is open and machine-checkable:
@@ -1031,7 +1033,7 @@ The format is open and machine-checkable:
 - Four JSON Schemas (draft 2020-12) — ``puppet``, ``motion``, ``expression``
   and ``physics`` — are published in ``docs/schemas/``; editors that follow
   ``$schema`` check a file as it is typed.
-- ``py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet`` (MCP
+- ``py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet`` (MCP
   ``puppet_validate``) checks a file against the schemas, the loader's rules
   and the rig checks; ``puppet-schema`` (MCP ``puppet_schema``) prints a schema.
 - ``docs/examples/read_puppet.py`` reads a ``.puppet`` with the Python standard
@@ -1056,7 +1058,7 @@ menus hold the toolbar's entries as well.
      - Purpose
    * - Open Puppet… / Examples ▾
      - Load a ``.puppet`` from disk (**File** menu), or pick one of the
-       rigs bundled under ``examples/puppet/`` from **Examples ▾** (the
+       rigs bundled under ``../Rigora/examples/puppet/`` from **Examples ▾** (the
        toolbar button, also under **File**)
    * - Import PNG… / Import PSD… / Import Cubism…
      - Auto-mesh a PNG, layer-split a PSD, or sample-and-reconstruct
@@ -1282,12 +1284,7 @@ Loading a rig
 The tab exposes three load paths:
 
 * **Open Puppet…** — pick any ``.puppet`` file from disk.
-* **Load bundled Imeru** — opens the rig shipped under
-  ``examples/puppet/imeru.puppet``. The resolver searches
-  ``examples_dir()`` first (beside the program in the packaged
-  Nuitka / PyInstaller builds, the repository root in a source
-  checkout) and falls back to a lookup relative to the current
-  working folder.
+* **Load bundled Imeru** — Rigora loads the installed package asset ``rigora/resources/examples/puppet/imeru.puppet`` through ``rigora.system.app_paths.examples_dir()``. If it is missing, reinstall the authorized Rigora package with its resources.
 * **Last rig** — the previously loaded rig auto-restores on
   Imervue startup from the ``last_rig_path`` settings field; the
   Desktop Pet tab re-instantiates the overlay invisibly so the
@@ -1582,7 +1579,7 @@ built-in greeting set; the persisted script path is cleared so
 the next launch doesn't reload it.
 
 A working sample lives at
-``examples/desktop_pet/imeru.petscript.json`` — six
+``../Rigora/examples/desktop_pet/imeru.petscript.json`` — six
 greetings, a line for each time of day, two hit-area buckets
 (``Head`` / ``Body``), lines for five motions (wave / greet /
 surprised / sleepy / shy), and a 30-minute stretch reminder. The
@@ -1754,13 +1751,7 @@ window-management tool is overriding the
 (some custom window managers on Linux do this). On Windows /
 macOS this should "just work".
 
-**"Load bundled Imeru" reports the file isn't found.** The
-resolver consults ``examples_dir()`` first (the frozen-safe
-location used by packaged builds) and falls back to a CWD-
-relative path. If neither contains the rig, the status label
-surfaces the expected path. Verify the ``examples/`` directory
-shipped with your install — for source checkouts, launch
-Imervue from the repository root.
+**"Load bundled Imeru" reports the file isn't found.** Rigora loads the installed package asset ``rigora/resources/examples/puppet/imeru.puppet`` through ``rigora.system.app_paths.examples_dir()``. If it is missing, reinstall the authorized Rigora package with its resources.
 
 **The pet doesn't speak when clicked.** Three checks:
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "English": {
+        "pet_integrations_rigora_missing": "Install Rigora to enable desktop pet integrations.",
         "pet_integrations_menu": "Desktop Pet Integrations",
         "pet_integrations_settings": "Settings…",
         "pet_integrations_settings_title": "Desktop Pet Integrations",
@@ -29,6 +30,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "pet_integrations_ignored": "Ignored app ids (one per line)",
     },
     "Traditional_Chinese": {
+        "pet_integrations_rigora_missing": "安裝 Rigora 以啟用桌面寵物整合。",
         "pet_integrations_menu": "桌面寵物整合",
         "pet_integrations_settings": "設定…",
         "pet_integrations_settings_title": "桌面寵物整合",
@@ -54,6 +56,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "pet_integrations_ignored": "忽略的應用程式 ID（每行一個）",
     },
     "Chinese": {
+        "pet_integrations_rigora_missing": "安装 Rigora 以启用桌面宠物集成。",
         "pet_integrations_menu": "桌面宠物集成",
         "pet_integrations_settings": "设置…",
         "pet_integrations_settings_title": "桌面宠物集成",
@@ -79,6 +82,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "pet_integrations_ignored": "忽略的应用 ID（每行一个）",
     },
     "Japanese": {
+        "pet_integrations_rigora_missing": "デスクトップペット連携を有効にするには Rigora をインストールしてください。",
         "pet_integrations_menu": "デスクトップペット連携",
         "pet_integrations_settings": "設定…",
         "pet_integrations_settings_title": "デスクトップペット連携",
@@ -104,6 +108,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "pet_integrations_ignored": "無視するアプリ ID（1 行に 1 つ）",
     },
     "Korean": {
+        "pet_integrations_rigora_missing": "데스크톱 펫 연동을 사용하려면 Rigora를 설치하세요.",
         "pet_integrations_menu": "데스크톱 펫 연동",
         "pet_integrations_settings": "설정…",
         "pet_integrations_settings_title": "데스크톱 펫 연동",

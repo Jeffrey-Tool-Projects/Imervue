@@ -290,8 +290,8 @@ the upstream's own terms.
 
 - **License / 授權:** Live2D Cubism SDK Free Material License
 - **Website / 網站:** https://www.live2d.com/sdk/license/
-- **Imervue integration / Imervue 整合方式:** ctypes binding in
-  `Imervue/puppet/cubism_native_bridge.py`; the runtime probes
+- **Optional Rigora integration / 選用 Rigora 整合方式:** ctypes binding in
+  `rigora/puppet/cubism_native_bridge.py` in the external Rigora package; the runtime probes
   `<cwd>/sdk/` and the `CUBISM_CORE_DLL` environment variable to
   locate `Live2DCubismCore.dll` / `.so` / `.dylib`.
 

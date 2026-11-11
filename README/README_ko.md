@@ -37,6 +37,8 @@ Modify는 원본 덮어쓰기와 사본 저장을 구분하고 대상 위치를 
 
 상태 표시줄에서 Background Jobs를 열고 실행 중 및 실패 개수를 확인할 수 있습니다. Puppet 캡처와 녹화는 출력 경로나 실패 세부 정보를 보존하여 나중에 결과 또는 폴더를 열 수 있습니다. 녹화에는 적용되지 않는 재시도 작업을 제공하지 않습니다. 웹캠은 실제 시작 중, 실행 중, 중지 중 및 오류 상태를 표시하고 장치 선택, 재시도 및 진단을 제공합니다. 종속 패키지가 없을 때 설치를 안내합니다. 명령 팔레트는 명령을 사용할 수 없는 이유를 설명하고 최근 또는 자주 사용한 명령을 우선 표시합니다.
 
+Puppet과 Desktop Pet은 외부 Rigora 패키지를 사용합니다. Imervue는 탭과 기존 CLI/MCP 명령을 유지하지만 별도의 애니메이션 구현을 포함하지 않습니다. Rigora는 현재 비공개 저장소이며 공개 패키지는 아직 출시되지 않았습니다. 접근 권한이 있는 인접 checkout에서 같은 Python 환경으로 `python -m pip install "../Rigora[gui]"`를 실행한 뒤 Imervue를 다시 시작하세요. Rigora가 없으면 해당 탭에 설치 안내가 나타나고 Imervue의 다른 기능은 계속 사용할 수 있습니다. Rigora는 자체 설정과 모델 캐시를 관리하며, 처음 내장 실행할 때 관련 기존 환경설정을 가져오되 설정 파일을 공유하지 않습니다. Rigora는 접근 권한이 있는 checkout 또는 wheel에서 별도로 설치하세요. 공개 소비자 패키지는 미출시 Rigora 의존성을 선언하지 않습니다. 공개된 패키징 실행 파일에는 빌드 시 제공하지 않는 한 비공개 Rigora가 포함되지 않습니다. 외부 pip 설치로 기존 패키징 실행 파일에 Rigora를 추가할 수 없습니다.
+
 ## 목차
 
 - [개요](#개요)
@@ -522,7 +524,7 @@ Paint로 전환해도 문서, 레이어, 저장하지 않은 변경 사항과 �
 
 ## Puppet — 2D 리그드 애니메이션
 
-**Puppet** 탭은 처음부터 직접 구축한 2D 리그드 퍼펫 애니메이션 시스템입니다. 메시 변형 리그, 파라미터, 모션, 물리, 표정, 포즈, 입싱크, 웹캠 얼굴 추적을 제공하며, **독점 SDK 없이**, **`live2d-py` 없이**, 그리고 `Imervue/puppet/FORMAT.md`에 완전히 문서화된 완전 개방형 `.puppet` 파일 형식을 사용합니다.
+**Puppet** 탭은 처음부터 직접 구축한 2D 리그드 퍼펫 애니메이션 시스템입니다. 메시 변형 리그, 파라미터, 모션, 물리, 표정, 포즈, 입싱크, 웹캠 얼굴 추적을 제공하며, **독점 SDK 없이**, **`live2d-py` 없이**, 그리고 [`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)에 완전히 문서화된 완전 개방형 `.puppet` 파일 형식을 사용합니다.
 
 > **전체 가이드**: [`puppet_guide.md`](../puppet_guide.md)는 라이브 스트리밍(OBS / NDI / 가상 카메라)과 애니메이션 제작(녹화 / 타임라인 편집 / MP4 내보내기) 양쪽의 엔드 투 엔드 워크플로우를 다룹니다. 중국어판은 [`puppet_guide.zh-TW.md`](../puppet_guide.zh-TW.md) 및 [`puppet_guide.zh-CN.md`](../puppet_guide.zh-CN.md)에 있습니다.
 
@@ -536,7 +538,7 @@ Paint로 전환해도 문서, 레이어, 저장하지 않은 변경 사항과 �
 - `expressions/*.json` — 파라미터 오버레이
 - `physics.json` — Verlet 리그 구성
 
-JSON 기반, 사람이 diff 가능, 독점 바이너리 없음. 이 형식은 개방되어 있고 검증할 수 있습니다: 저장된 파일은 압축하지 않은 `mimetype` 항목(`application/vnd.imervue.puppet+zip`)으로 시작하고, 모든 JSON 파일은 `$schema`에 자신의 스키마를 명시합니다. 네 개의 JSON Schema는 [`docs/schemas/`](../docs/schemas/)에 공개되어 있고, `py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet`(MCP `puppet_validate`)은 파일을 검사하며 `puppet-schema`(MCP `puppet_schema`)는 스키마를 출력합니다. [`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py)는 Python 표준 라이브러리만으로 파일을 읽습니다. 사양([`Imervue/puppet/FORMAT.md`](../Imervue/puppet/FORMAT.md))과 스키마는 MIT 라이선스이므로 어떤 프로그램이든 `.puppet` 파일을 읽거나 쓸 수 있습니다.
+JSON 기반, 사람이 diff 가능, 독점 바이너리 없음. 이 형식은 개방되어 있고 검증할 수 있습니다: 저장된 파일은 압축하지 않은 `mimetype` 항목(`application/vnd.imervue.puppet+zip`)으로 시작하고, 모든 JSON 파일은 `$schema`에 자신의 스키마를 명시합니다. 네 개의 JSON Schema는 [`docs/schemas/`](../docs/schemas/)에 공개되어 있고, `py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet`(MCP `puppet_validate`)은 파일을 검사하며 `puppet-schema`(MCP `puppet_schema`)는 스키마를 출력합니다. [`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py)는 Python 표준 라이브러리만으로 파일을 읽습니다. 사양([`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md))과 스키마는 MIT 라이선스이므로 어떤 프로그램이든 `.puppet` 파일을 읽거나 쓸 수 있습니다.
 
 ### 렌더러
 
@@ -644,7 +646,7 @@ OBS **Sources > + > Window Capture**는 Imervue 창을 직접 잡을 수 있으�
 
 ### 데모
 
-**Imeru** (`examples/puppet/imeru.puppet`). Imeru는 Imervue의 오리지널 전신 캐릭터로, 풍성하게 흐르는 청록색 머리, 허리선을 살린 비대칭 재킷, 주름 잡힌 소매, 겹쳐진 측면 장식과 정교한 부츠를 갖춘 현대 애니메이션 스타일로 다시 그렸습니다. 1024 × 1664 모델은 `examples/puppet/imeru/artwork/`에 저장된 원본 투명 삽화를 사용합니다. 몸과 소매의 연속된 메시가 그림을 유지하면서 머리, 머리카락과 팔을 움직이며 별도 얼굴 소재가 눈 깜박임, 시선과 말하기를 표현합니다. 표준 입력 매개변수, 8개 모션, 7개 표정과 머리/몸 상호작용은 유지됩니다. `py -3 examples/puppet/imeru/build.py`로 저장된 소재에서 모델을 다시 만들 수 있습니다. **File > Examples > Imeru** 또는 **Open Puppet…**로 엽니다.
+**Imeru** (`../Rigora/examples/puppet/imeru.puppet`). Imeru는 Imervue의 오리지널 전신 캐릭터로, 풍성하게 흐르는 청록색 머리, 허리선을 살린 비대칭 재킷, 주름 잡힌 소매, 겹쳐진 측면 장식과 정교한 부츠를 갖춘 현대 애니메이션 스타일로 다시 그렸습니다. 1024 × 1664 모델은 `../Rigora/examples/puppet/imeru/artwork/`에 저장된 원본 투명 삽화를 사용합니다. 몸과 소매의 연속된 메시가 그림을 유지하면서 머리, 머리카락과 팔을 움직이며 별도 얼굴 소재가 눈 깜박임, 시선과 말하기를 표현합니다. 표준 입력 매개변수, 8개 모션, 7개 표정과 머리/몸 상호작용은 유지됩니다. `py -3 ../Rigora/examples/puppet/imeru/build.py`로 저장된 소재에서 모델을 다시 만들 수 있습니다. **File > Examples > Imeru** 또는 **Open Puppet…**로 엽니다.
 
 ---
 
@@ -734,7 +736,7 @@ OBS **Sources > + > Window Capture**는 Imervue 창을 직접 잡을 수 있으�
 
 대사는 버킷별로 라운드 로빈 방식으로 순환하므로 같은 대사가 연속으로 두 번 나오지 않습니다. **Reset to default**는 커스텀 스크립트를 버리고 내장 인사말 세트를 되살립니다.
 
-동작하는 샘플은 [`examples/desktop_pet/imeru.petscript.json`](../examples/desktop_pet/imeru.petscript.json)에 있습니다. 머리와 몸 대사는 Imeru의 `Head`와 `Body` hit area 클릭에 응답합니다.
+동작하는 샘플은 [`../Rigora/examples/desktop_pet/imeru.petscript.json`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/desktop_pet/imeru.petscript.json)에 있습니다. 머리와 몸 대사는 Imeru의 `Head`와 `Body` hit area 클릭에 응답합니다.
 
 ---
 

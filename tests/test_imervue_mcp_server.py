@@ -392,6 +392,7 @@ def test_convert_format_raises_for_missing_destination_parent(sample_image, tmp_
 
 
 def test_puppet_from_png_writes_archive_and_returns_summary(sample_rgba_image, tmp_path):
+    pytest.importorskip("rigora", reason="optional Rigora integration")
     dst = tmp_path / "rig.puppet"
     result = puppet_from_png(str(sample_rgba_image), str(dst), cell_size=10)
     assert dst.exists()
@@ -401,6 +402,7 @@ def test_puppet_from_png_writes_archive_and_returns_summary(sample_rgba_image, t
 
 
 def test_puppet_inspect_returns_inventory(sample_rgba_image, tmp_path):
+    pytest.importorskip("rigora", reason="optional Rigora integration")
     dst = tmp_path / "rig.puppet"
     puppet_from_png(str(sample_rgba_image), str(dst), cell_size=10)
     inventory = puppet_inspect(str(dst))

@@ -39,6 +39,7 @@ _ENGLISH_SATURATION = 'Saturation:'
 _ENGLISH_RADIUS_PX = 'Radius (px):'
 
 english_word_dict = {
+    "rigora_missing_notice": 'Puppet and Desktop Pet require Rigora. For a source installation, install an authorized Rigora checkout or wheel in the same Python environment, then restart Imervue. Packaged executables require a build that includes Rigora; external pip cannot add it.',
     "heif_install_hint": "Install pillow-heif to view HEIC images.",
     "exif_location": "Location",
     "exif_coordinates": "GPS",

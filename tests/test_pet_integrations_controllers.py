@@ -6,6 +6,10 @@ real websocket / socket / WinRT dependency or any Qt widget.
 """
 from __future__ import annotations
 
+import pytest
+
+pytest.importorskip("rigora", reason="external desktop-pet runtime is optional")
+
 from _pet_fakes import FakeHost, FakeSignal
 from pet_integrations import integrations
 from pet_integrations.integrations import (
