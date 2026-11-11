@@ -6,8 +6,8 @@ Cross-repo and workspace items live in `D:\Codes\progress.md` (relevant here: S-
 
 ## Open
 
-- Puppet extraction into a standalone GitHub project is in progress. The ordered plan is in `docs/puppet-extraction-plan.md`; the source revision, hashes and static boundaries are in `docs/puppet-extraction-inventory.json`.
-  Next: collect the full-suite baseline result or record its failure; stage 1 remains open while it runs. Select the project name and verify repository/package availability and visibility before creating the remote. Complete the independent core and migrate Imervue/FrontEngine consumers before removing the bundled implementation. Baseline logs and the candidate source snapshot are local under `.audit/puppet-split/`.
+- Rigora standalone extraction is in progress. The ordered plan is in `docs/puppet-extraction-plan.md`; the independent checkout is `D:/Codes/Rigora`, with remote `https://github.com/Jeffrey-Tool-Projects/Rigora`. Source baselines and initial history extraction are recorded in `docs/updates/2026-11.md`.
+  Next: separate document/archive/runtime and atomic file writes from Imervue, then build and test an independent package. Resolve GUI/shared services and migrate Imervue/FrontEngine consumers before removing bundled code. Rigora is not independently installable yet. The revised Imeru prompt is `examples/puppet/imeru/concepts/rigora-art-direction-v2.md`; render and inspect it before replacing any existing artwork.
 
 - [BLOCKED] Codacy file-complexity threshold: every runtime file that scored 80 or more is split (PR #111, fix/main-quality). Hosted Codacy still flags files above the current threshold of 20; at 60 about 50 files would remain, at 50 about 88.
   Next: the owner raises the threshold in the Codacy repository quality settings (the environment Codacy token returns HTTP 401 here), then decide whether the 60-80 band needs another pass. canvas_render.py remains at 68.

@@ -2,7 +2,9 @@
 
 日期為 2026-11-11。來源為 `dev` 的 `d5fbb8339f89d75568007b4f2e319e728236db3e`。
 目標是讓 Puppet 有獨立 GitHub repository、安裝套件、啟動入口與測試，並讓 Imervue 和 FrontEngine 使用同一份實作。
-專案品牌由使用者選定，Python distribution 與 import 名稱需另外核實可用性。
+使用者已於 2026-11-11 選定專案品牌 **Rigora**。目標 repository 為
+`Jeffrey-Tool-Projects/Rigora`，拆分期間預設 private。
+Python distribution 與 import 名稱需另外核實可用性，不因 GitHub 名稱可用就視為已取得套件名稱。
 
 ## 完成條件
 
@@ -57,7 +59,8 @@
 這會跳過需要實際 GL widget 的測試，不能代表 GUI／OpenGL 驗證完成。
 核心基準為 161 passed、13 skipped，涵蓋 `test_puppet_document_io.py`、`test_puppet_runtime.py`、
 `test_puppet_format_schema.py`、`test_puppet_physics.py`、`test_puppet_archive_contracts.py`。
-ruff 通過；bandit 未發現問題。完整測試仍在執行，尚不能宣稱全套通過。
+ruff 通過；bandit 未發現問題。原專案完整測試為 17,886 passed、1,439 skipped、9 warnings，
+退出碼 0，耗時 771.98 秒。這是原 Imervue 的 offscreen 基準，不是新 Rigora 的獨立安裝驗證。
 現有 `test_coverage.md` 為使用者原本的未追蹤檔案，不納入本次變更。
 
 盤點資料在 [puppet-extraction-inventory.json](puppet-extraction-inventory.json)。
@@ -69,3 +72,16 @@ SHA-256 對應本機 tracked 檔案位元組，Windows 換行可能與 Git blob 
 確認其實際 imports 與 `puppet = ["Imervue>=1.0.90"]`，不只依賴架構文件的描述。
 
 工作量檢查點放在階段 1 結束。先確認測試基準與跨專案合約，再進入程式搬移；不把數百個模組的搬移與品牌改名混在同一階段。
+
+## Rigora 來源抽取
+
+已在 `D:/Codes/Rigora` 建立隔離 checkout，使用 git-filter-repo 2.47.0 篩選選定路徑，
+保留 179 筆相關歷史提交，包含舊 `plugins/puppet/` 路徑。未改寫 Imervue 歷史。
+加入新專案文件前，260 個檔案的 Git blob 與來源 revision 全數一致；`git fsck --full` 通過。
+新專案的 `migration/` 保存選取路徑、commit mapping 與來源記錄。
+
+遠端 [Rigora](https://github.com/Jeffrey-Tool-Projects/Rigora) 已建立為 private；
+`main` 的 `827578a80ab9fa39db80c1b588e775dcee0354e1` 已推送並與本機核對一致。
+
+程式碼暫時維持原 import 路徑。下一階段從 document／archive／runtime 與原子存檔邊界開始，
+讓新套件在未安裝 Imervue 的環境通過測試，再接續 GUI 與呼叫者遷移。

@@ -268,6 +268,12 @@ and os._exit, which bypasses aboutToQuit; secondary windows keep other jobs runn
 
 ## 6. Cross-project boundaries
 
+Rigora (`https://github.com/Jeffrey-Tool-Projects/Rigora`) is the independent
+Puppet extraction repository. Its initial import preserves selected source
+history; it still uses `Imervue.puppet` paths and host services. Imervue and
+FrontEngine continue using the bundled implementation until standalone package
+and consumer tests pass. See [the migration plan](docs/puppet-extraction-plan.md).
+
 - **WaywardCrown (portrait generator)** imports `Imervue.paint.painterly.paint` and
   `PainterlyOptions` (`tools/artgen/portrait_paint.py` there), from an installed Imervue or
   from this working tree on `sys.path`, to paint its rendered portrait busts over in oil. It
