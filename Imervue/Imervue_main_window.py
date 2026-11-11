@@ -357,6 +357,11 @@ class ImervueMainWindow(
             event.ignore()
             return
 
+        puppet = getattr(self, "puppet_workspace", None)
+        if puppet is not None and not puppet.confirm_discard_changes():
+            event.ignore()
+            return
+
         self._release_for_close()
         self._persist_for_close()
 
