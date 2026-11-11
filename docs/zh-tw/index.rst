@@ -1,6 +1,8 @@
 Imervue 使用手冊
 ================
 
+Puppet 與 Desktop Pet 現在使用外部 Rigora 套件。Imervue 保留分頁及既有 CLI/MCP 指令，但不再內建第二份動畫引擎。Rigora 目前是私人儲存庫，尚未公開發行套件。取得授權的相鄰 checkout 後，請在同一個 Python 環境執行 ``python -m pip install "../Rigora[gui]"``，再重新啟動 Imervue。未安裝 Rigora 時，這些分頁會顯示安裝提示，Imervue 其他功能仍可使用。Rigora 自行管理設定與模型快取；首次嵌入啟動會匯入相關既有偏好，但不共用設定檔。 請另行安裝已授權的 Rigora checkout 或 wheel；公開消費端套件不宣告尚未發行的 Rigora 相依。公開的凍結執行檔不含私人 Rigora，除非建置時已提供。使用外部 pip 安裝 Rigora 無法將它加入既有凍結執行檔。
+
 檔案樹搜尋結果可按 Enter 或雙擊直接開圖，另保留定位操作。結果分別顯示檔名與相對路徑，收合結果不會清除查詢。樹狀檢視上方直接顯示排序套用於全域或此資料夾，日期與大小採用明確的方向文字，並提供可見的重設入口。搜尋會顯示資料夾與子資料夾範圍；獨立的圖片篩選則顯示可逐項移除的條件、符合數量，以及明確開啟但不符合條件而保留的圖片提示。
 
 Modify 明確區分覆寫原檔與另存副本，並顯示目的位置。裁切也會說明是否寫回原檔。唯讀來源格式使用副本；寫入失敗保留編輯內容，儲存成功顯示實際路徑。送往 Paint 時可選擇原圖或完整品質的目前顯影結果，明確決定是否包含標註，並建立新文件。既有 Paint 文件與復原紀錄保持完整。
@@ -847,7 +849,7 @@ Puppet 工作區（Puppet 分頁）
 範例
 ^^^^
 
-**Imeru** (``examples/puppet/imeru.puppet``). Imeru 是 Imervue 的原創全身角色，重新繪製為現代動漫風，具有蓬鬆流動的深青髮型、收腰非對稱外套、寬鬆袖子、多層側裙與精緻靴子。1024 × 1664 模型使用保存在 ``examples/puppet/imeru/artwork/`` 的原創透明插畫。連續的身體與袖面網格保留完整畫風，帶動頭部、頭髮和手臂；獨立五官素材提供眨眼、視線及說話動畫。標準輸入參數、八組動作、七種表情與頭部／身體互動均保留。``py -3 examples/puppet/imeru/build.py`` 可從這些素材重建模型。透過 **File > Examples > Imeru** 或 **Open Puppet…** 開啟。
+**Imeru** (``../Rigora/examples/puppet/imeru.puppet``). Imeru 是 Imervue 的原創全身角色，重新繪製為現代動漫風，具有蓬鬆流動的深青髮型、收腰非對稱外套、寬鬆袖子、多層側裙與精緻靴子。1024 × 1664 模型使用保存在 ``../Rigora/examples/puppet/imeru/artwork/`` 的原創透明插畫。連續的身體與袖面網格保留完整畫風，帶動頭部、頭髮和手臂；獨立五官素材提供眨眼、視線及說話動畫。標準輸入參數、八組動作、七種表情與頭部／身體互動均保留。``py -3 ../Rigora/examples/puppet/imeru/build.py`` 可從這些素材重建模型。透過 **File > Examples > Imeru** 或 **Open Puppet…** 開啟。
 
 該 rig 帶有所有 Cubism 標準參數（``ParamAngleX/Y/Z``、``ParamEyeLOpen/ROpen``、``ParamBreath``、``ParamMouthOpenY`` …），外加控制手臂的 ``ParamArmLA/LB/RA/RB``，所以所有標準輸入驅動（攝影機、眨眼、對嘴、游標追蹤）不必逐一設定 rig 就能驅動。檔案內附 8 個動作：``Idle`` 群組有 2 個循環播放的 idle 動作，``TapHead`` 有 ``tap_head``、``TapBody`` 有 ``shy``\ （點她的頭或身體就會播放），``Gesture`` 則有 ``greet``、``wave``、``surprised`` 與 ``sleepy``；另外隨附 7 個表情（smile、happy、surprised、sad、angry、blush、sleepy）。
 
@@ -855,7 +857,7 @@ Puppet 工作區（Puppet 分頁）
 
 **執行內附範例 — 逐步走讀：**
 
-1. **啟動 Imervue**。原始碼跑：``python -m Imervue``；裝好的版本：直接執行 ``Imervue`` 執行檔 / app bundle。``examples/`` 資料夾有打包進 Nuitka 與 PyInstaller 版本；pip / wheel 安裝則不含（從原始碼 checkout 執行時，rig 在 ``examples/puppet/``）。
+1. **啟動 Imervue**。原始碼跑：``python -m Imervue``；裝好的版本：直接執行 ``Imervue`` 執行檔 / app bundle。``examples/`` 資料夾有打包進 Nuitka 與 PyInstaller 版本；pip / wheel 安裝則不含（從原始碼 checkout 執行時，rig 在 ``../Rigora/examples/puppet/``）。
 2. 點視窗頂端的 **Puppet** 分頁。
 3. **File > Examples > Imeru**\ （或工具列上的 **Examples ▾** 下拉）。rig 居中載入，參數欄會填滿它的滑桿。
 4. 在底部 **Motions** 擺放欄單擊任一個動作條目（``idle_look``、``wave``、``tap_head`` …）。立即開始播放；再點一次會重新播放，擺放欄的 **Stop** 按鈕停止播放，選別的動作則交叉淡入。
@@ -897,7 +899,7 @@ Puppet 工作區（Puppet 分頁）
    }
 
 完整規格（drawables、deformers、parameters、motions、expressions、pose、
-physics）記錄於倉庫的 ``Imervue/puppet/FORMAT.md``。只有 JSON + PNG — 沒有
+physics）記錄於倉庫的 `Rigora FORMAT.md <https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md>`_。只有 JSON + PNG — 沒有
 專有二進位，可完全透過 git diff。
 
 這個格式是開放的，也能由程式檢查：
@@ -908,7 +910,7 @@ physics）記錄於倉庫的 ``Imervue/puppet/FORMAT.md``。只有 JSON + PNG �
 - 四份 JSON Schema（draft 2020-12）— ``puppet``、``motion``、``expression``
   與 ``physics`` — 公開於 ``docs/schemas/``；會依循 ``$schema`` 的編輯器能在
   輸入時即時檢查檔案。
-- ``py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet``\ （MCP
+- ``py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet``\ （MCP
   ``puppet_validate``\ ）依 schema、載入器規則與 rig 檢查驗證檔案；
   ``puppet-schema``\ （MCP ``puppet_schema``\ ）會印出一份 schema。
 - ``docs/examples/read_puppet.py`` 只用 Python 標準函式庫就能讀取 ``.puppet``，
@@ -929,7 +931,7 @@ physics）記錄於倉庫的 ``Imervue/puppet/FORMAT.md``。只有 JSON + PNG �
    * - 動作
      - 用途
    * - Open Puppet… / Examples ▾
-     - 從磁碟載入 ``.puppet``\ （**File** 選單），或從 **Examples ▾**\ （工具列按鈕，**File** 選單中也有）挑 ``examples/puppet/`` 下內附的 rig
+     - 從磁碟載入 ``.puppet``\ （**File** 選單），或從 **Examples ▾**\ （工具列按鈕，**File** 選單中也有）挑 ``../Rigora/examples/puppet/`` 下內附的 rig
    * - Import PNG… / Import PSD… / Import Cubism…
      - PNG 自動 mesh、PSD 分層拆 drawable、Cubism rig sample-and-reconstruct。Cubism 檔案選擇器同時接受 ``.moc3`` 跟 ``.model3.json``；工作區還沒開 rig 時兩條路徑都跑完整 ``.moc3 → .puppet`` 轉換（SDK 使用者自備）。已經開了 rig 時挑 ``.model3.json`` 改把 JSON 部分（motions / expressions / physics）疊到既有文件
    * - Recent
@@ -1047,7 +1049,7 @@ DirectShow / AVFoundation / v4l2loopback 都\ **只有 RGB、沒有 alpha 通道
 分頁提供三條載入途徑：
 
 * **Open Puppet…** — 從硬碟挑任何 ``.puppet`` 檔。
-* **Load bundled Imeru** — 開啟內附在 ``examples/puppet/imeru.puppet`` 的 rig。Resolver 會先查 ``examples_dir()``\ （Nuitka / PyInstaller 打包版是程式旁邊，原始碼 checkout 則是 repository 根目錄），找不到再退回以目前工作資料夾為準的相對路徑。
+* **Load bundled Imeru** — Rigora 透過 ``rigora.system.app_paths.examples_dir()`` 載入已安裝套件內的 ``rigora/resources/examples/puppet/imeru.puppet``。若檔案遺失，請重新安裝含資源的授權 Rigora 套件。
 * **上次的 rig** — Imervue 啟動時會從 ``last_rig_path`` 設定欄位自動還原上次載入的 rig；Desktop Pet 分頁會靜默重建浮層，所以你和上次離開時的狀態之間只差一個點擊。
 
 載入成功會自動勾起 **Show pet on desktop**，桌寵立刻現身。失敗時勾選框不會動，錯誤訊息會寫在分頁的狀態列上。
@@ -1211,7 +1213,7 @@ Schema（有版本 — 未來的欄位會向前相容）：
 
 **Reset to default** 會丟掉使用者腳本、回到內建打招呼集；保存的腳本路徑也會清空，下次啟動不會再載入它。
 
-可用的範例放在 ``examples/desktop_pet/imeru.petscript.json`` — 六句打招呼、每個時段各一句台詞、兩個 hit-area 桶（``Head`` / ``Body``）、五個動作的台詞（wave / greet / surprised / sleepy / shy），以及一個 30 分鐘的伸展提醒。桶名就是 Imeru 的 hit area 名稱，所以點她的頭和身體都會有回應；hit area 採用 Cubism 命名（``HitAreaHead`` / ``HitAreaBody``）的 rig 則需要以這兩個名稱建立桶。
+可用的範例放在 ``../Rigora/examples/desktop_pet/imeru.petscript.json`` — 六句打招呼、每個時段各一句台詞、兩個 hit-area 桶（``Head`` / ``Body``）、五個動作的台詞（wave / greet / surprised / sleepy / shy），以及一個 30 分鐘的伸展提醒。桶名就是 Imeru 的 hit area 名稱，所以點她的頭和身體都會有回應；hit area 採用 Cubism 命名（``HitAreaHead`` / ``HitAreaBody``）的 rig 則需要以這兩個名稱建立桶。
 
 持久化
 ^^^^^^
@@ -1327,7 +1329,7 @@ rig 只會對自己擁有的動作群組做出反應；缺少的群組不會播�
 
 **桌寵出現在灰色矩形裡，而不是完全透明。** OS 層級的半透明背景屬性需要 alpha-aware 的 GL surface 加上嵌入 GL widget 的對應屬性。確認沒有任何第三方視窗管理工具在浮層視窗上覆寫 ``WA_TranslucentBackground``\ （Linux 上某些自製視窗管理員會這樣做）。Windows / macOS 上應該「直接能用」。
 
-**「Load bundled Imeru」說檔案找不到。** Resolver 先查 ``examples_dir()``\ （打包版用的 frozen-safe 位置），再退回 CWD 相對路徑。兩者都沒有 rig 時，狀態列會列出預期路徑。檢查你安裝中附的 ``examples/`` 資料夾 — 如果是從原始碼 checkout 執行，要從 repository 根目錄啟動 Imervue。
+**「Load bundled Imeru」說檔案找不到。** Rigora 透過 ``rigora.system.app_paths.examples_dir()`` 載入已安裝套件內的 ``rigora/resources/examples/puppet/imeru.puppet``。若檔案遺失，請重新安裝含資源的授權 Rigora 套件。
 
 **桌寵被點了不講話。** 三個檢查點：
 

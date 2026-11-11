@@ -37,6 +37,8 @@ Modify は元ファイルの上書きとコピー保存を区別し、保存先�
 
 ステータスバーから Background Jobs を開き、実行中と失敗の件数を確認できます。Puppet のキャプチャと録画は出力パスまたは失敗の詳細を保持し、後から出力やフォルダーを開けます。録画には適用できない再試行操作を表示しません。ウェブカメラは実際の起動中、動作中、停止中、エラー状態を表示し、デバイス選択、再試行、診断を提供します。依存パッケージが不足する場合にインストールを案内します。コマンドパレットは利用できない理由を説明し、最近または頻繁に使ったコマンドを優先します。
 
+Puppet と Desktop Pet は外部の Rigora パッケージを使用します。Imervue はタブと既存の CLI/MCP コマンドを維持しますが、別のアニメーション実装は同梱しません。Rigora は現在非公開リポジトリで、公開パッケージは未リリースです。アクセス権のある隣接 checkout を用意し、同じ Python 環境で `python -m pip install "../Rigora[gui]"` を実行してから Imervue を再起動してください。Rigora がない場合はタブにインストール案内が表示され、Imervue の他の機能は引き続き利用できます。設定とモデルキャッシュは Rigora が管理し、初回の埋め込み起動時に関連する既存設定を取り込みますが、設定ファイルは共有しません。 Rigora はアクセス権のある checkout または wheel から別途インストールしてください。公開の利用側パッケージは未公開の Rigora 依存関係を宣言しません。公開の凍結実行ファイルには、ビルド時に用意しない限り非公開の Rigora は含まれません。外部の pip で既存の凍結実行ファイルに Rigora を追加することはできません。
+
 ## 目次
 
 - [概要](#概要)
@@ -521,7 +523,7 @@ Paint に切り替えても、ドキュメント、レイヤー、未保存の�
 
 > **完全ガイド**: [`puppet_guide.md`](../puppet_guide.md) はライブストリーミング(OBS / NDI / 仮想カメラ)とアニメーション制作(録画 / タイムライン編集 / MP4 エクスポート)のエンドツーエンドのワークフローをカバーします。中国語版は [`puppet_guide.zh-TW.md`](../puppet_guide.zh-TW.md) および [`puppet_guide.zh-CN.md`](../puppet_guide.zh-CN.md) にあります。
 
-**Puppet** タブはゼロから構築された 2D リギングパペットアニメーションシステムです。メッシュ変形リギング、パラメーター、モーション、物理、表情、ポーズ、リップシンク、ウェブカメラ顔追跡を、**プロプライエタリな SDK を一切使わず**、**`live2d-py` も使わず**、`Imervue/puppet/FORMAT.md` で完全に文書化された完全オープンな `.puppet` ファイルフォーマットで実現します。
+**Puppet** タブはゼロから構築された 2D リギングパペットアニメーションシステムです。メッシュ変形リギング、パラメーター、モーション、物理、表情、ポーズ、リップシンク、ウェブカメラ顔追跡を、**プロプライエタリな SDK を一切使わず**、**`live2d-py` も使わず**、[`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md) で完全に文書化された完全オープンな `.puppet` ファイルフォーマットで実現します。
 
 ### ファイルフォーマット
 
@@ -533,7 +535,7 @@ Paint に切り替えても、ドキュメント、レイヤー、未保存の�
 - `expressions/*.json` — パラメーターオーバーレイ
 - `physics.json` — Verlet 物理構成
 
-JSON ベースで、人間が diff 可能、プロプライエタリなバイナリは一切なし。フォーマットはオープンで検証可能です: 保存したファイルは無圧縮の `mimetype` エントリ(`application/vnd.imervue.puppet+zip`)で始まり、すべての JSON ファイルは `$schema` で自身のスキーマを示します。4 つの JSON Schema は [`docs/schemas/`](../docs/schemas/) で公開しています。`py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet`(MCP `puppet_validate`)でファイルを検証し、`puppet-schema`(MCP `puppet_schema`)でスキーマを表示できます。[`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) は Python 標準ライブラリだけでファイルを読み込みます。仕様([`Imervue/puppet/FORMAT.md`](../Imervue/puppet/FORMAT.md))とスキーマは MIT ライセンスなので、どのプログラムでも `.puppet` ファイルを読み書きできます。
+JSON ベースで、人間が diff 可能、プロプライエタリなバイナリは一切なし。フォーマットはオープンで検証可能です: 保存したファイルは無圧縮の `mimetype` エントリ(`application/vnd.imervue.puppet+zip`)で始まり、すべての JSON ファイルは `$schema` で自身のスキーマを示します。4 つの JSON Schema は [`docs/schemas/`](../docs/schemas/) で公開しています。`py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet`(MCP `puppet_validate`)でファイルを検証し、`puppet-schema`(MCP `puppet_schema`)でスキーマを表示できます。[`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) は Python 標準ライブラリだけでファイルを読み込みます。仕様([`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md))とスキーマは MIT ライセンスなので、どのプログラムでも `.puppet` ファイルを読み書きできます。
 
 ### レンダラ
 
@@ -643,7 +645,7 @@ OBS **Sources > + > Window Capture** で Imervue ウィンドウを直接取り�
 
 ### サンプル
 
-**Imeru** (`examples/puppet/imeru.puppet`). Imeru は Imervue オリジナルの全身キャラクターです。流れる青緑の髪、ウエストを絞った非対称ジャケット、ギャザー入りの袖、重ねたサイドパネル、細部まで描かれたブーツを備える現代アニメ風に描き直しました。1024 × 1664 のモデルは `examples/puppet/imeru/artwork/` のオリジナル透過イラストを使用します。身体と袖を連続したメッシュにして絵柄を保ちながら頭、髪、腕を動かし、顔のパーツでまばたき、視線、発話を表現します。標準入力パラメーター、8つのモーション、7つの表情、頭と身体の操作は維持されます。`py -3 examples/puppet/imeru/build.py` で保存済み素材から再構築できます。**File > Examples > Imeru** または **Open Puppet…** から開きます。
+**Imeru** (`../Rigora/examples/puppet/imeru.puppet`). Imeru は Imervue オリジナルの全身キャラクターです。流れる青緑の髪、ウエストを絞った非対称ジャケット、ギャザー入りの袖、重ねたサイドパネル、細部まで描かれたブーツを備える現代アニメ風に描き直しました。1024 × 1664 のモデルは `../Rigora/examples/puppet/imeru/artwork/` のオリジナル透過イラストを使用します。身体と袖を連続したメッシュにして絵柄を保ちながら頭、髪、腕を動かし、顔のパーツでまばたき、視線、発話を表現します。標準入力パラメーター、8つのモーション、7つの表情、頭と身体の操作は維持されます。`py -3 ../Rigora/examples/puppet/imeru/build.py` で保存済み素材から再構築できます。**File > Examples > Imeru** または **Open Puppet…** から開きます。
 
 ---
 
@@ -733,7 +735,7 @@ OBS **Sources > + > Window Capture** で Imervue ウィンドウを直接取り�
 
 セリフはバケットごとにラウンドロビンで循環するので、同じセリフが 2 回連続で流れることはありません。**Reset to default** はカスタムスクリプトを破棄し、組み込みの挨拶セットを復元します。
 
-動作するサンプルは [`examples/desktop_pet/imeru.petscript.json`](../examples/desktop_pet/imeru.petscript.json) にあります。head と body のセリフは、Imeru の `Head` と `Body` ヒットエリアへのクリックに応答します。
+動作するサンプルは [`../Rigora/examples/desktop_pet/imeru.petscript.json`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/desktop_pet/imeru.petscript.json) にあります。head と body のセリフは、Imeru の `Head` と `Body` ヒットエリアへのクリックに応答します。
 
 ---
 

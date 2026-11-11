@@ -37,6 +37,8 @@ Modify distingue sobrescribir el original de guardar una copia y muestra el dest
 
 La barra de estado abre Background Jobs y muestra los trabajos activos y fallidos. Las capturas y grabaciones de Puppet conservan allí las rutas de salida o los detalles del fallo; después se puede abrir el resultado o su carpeta. Las grabaciones no ofrecen un reintento inaplicable. La cámara muestra los estados reales de inicio, ejecución, detención y error, con selección de dispositivo, reintento y diagnóstico; se ofrece instalación cuando faltan dependencias. La paleta explica los comandos no disponibles y prioriza los usados recientemente o con frecuencia.
 
+Puppet y Desktop Pet utilizan ahora el paquete externo Rigora. Imervue conserva sus pestañas y los comandos CLI/MCP existentes, pero ya no incluye una segunda implementación de animación. Rigora es actualmente un repositorio privado sin un paquete publicado públicamente. Con un checkout adyacente autorizado, ejecute `python -m pip install "../Rigora[gui]"` en el mismo entorno Python y reinicie Imervue. Sin Rigora, estas pestañas muestran un aviso de instalación y las demás funciones siguen disponibles. Rigora administra sus propios ajustes y caché de modelos; el primer inicio integrado importa las preferencias existentes pertinentes sin compartir el archivo de configuración. Instale Rigora por separado desde un checkout o wheel autorizado; los paquetes consumidores públicos no declaran una dependencia de Rigora sin publicar. Los ejecutables congelados públicos excluyen Rigora privado salvo que se proporcione durante la compilación. Una instalación externa con pip no puede añadirlo a un ejecutable congelado existente.
+
 ## Tabla de contenidos
 
 - [Resumen](#resumen)
@@ -522,7 +524,7 @@ Al cambiar a Paint se conservan los documentos, las capas, los cambios sin guard
 
 ## Puppet — Animación 2D con esqueleto
 
-La pestaña **Puppet** es un sistema de animación 2D con esqueleto construido desde cero: rigs de deformación de malla, parámetros, animaciones, física, expresiones, pose, sincronización labial y seguimiento facial por webcam, **sin SDK propietario**, **sin `live2d-py`**, y con un formato de archivo `.puppet` completamente abierto y documentado en `Imervue/puppet/FORMAT.md`.
+La pestaña **Puppet** es un sistema de animación 2D con esqueleto construido desde cero: rigs de deformación de malla, parámetros, animaciones, física, expresiones, pose, sincronización labial y seguimiento facial por webcam, **sin SDK propietario**, **sin `live2d-py`**, y con un formato de archivo `.puppet` completamente abierto y documentado en [`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md).
 
 > **Tutorial completo**: [`puppet_guide.md`](../puppet_guide.md) cubre el
 > flujo de extremo a extremo tanto para streaming en vivo (OBS / NDI / cámara
@@ -541,7 +543,7 @@ La pestaña **Puppet** es un sistema de animación 2D con esqueleto construido d
 - `expressions/*.json` — superposiciones de parámetros
 - `physics.json` — configuración del rig de Verlet
 
-Basado en JSON, comparable a mano, sin binarios propietarios. El formato es abierto y verificable: un archivo guardado empieza con una entrada `mimetype` sin comprimir (`application/vnd.imervue.puppet+zip`) y cada archivo JSON indica su esquema en `$schema`; los cuatro JSON Schemas se publican en [`docs/schemas/`](../docs/schemas/); `py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet` (MCP `puppet_validate`) comprueba un archivo y `puppet-schema` (MCP `puppet_schema`) imprime un esquema; [`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) lee uno sólo con la biblioteca estándar de Python. La especificación ([`Imervue/puppet/FORMAT.md`](../Imervue/puppet/FORMAT.md)) y los esquemas tienen licencia MIT, así que cualquier programa puede leer o escribir archivos `.puppet`.
+Basado en JSON, comparable a mano, sin binarios propietarios. El formato es abierto y verificable: un archivo guardado empieza con una entrada `mimetype` sin comprimir (`application/vnd.imervue.puppet+zip`) y cada archivo JSON indica su esquema en `$schema`; los cuatro JSON Schemas se publican en [`docs/schemas/`](../docs/schemas/); `py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet` (MCP `puppet_validate`) comprueba un archivo y `puppet-schema` (MCP `puppet_schema`) imprime un esquema; [`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) lee uno sólo con la biblioteca estándar de Python. La especificación ([`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)) y los esquemas tienen licencia MIT, así que cualquier programa puede leer o escribir archivos `.puppet`.
 
 ### Renderizador
 
@@ -694,7 +696,7 @@ máquinas bloqueadas donde no puedes instalar drivers.
 
 ### Demo
 
-**Imeru** (`examples/puppet/imeru.puppet`). Imeru es la mascota original de cuerpo completo de Imervue, redibujada en estilo anime moderno con cabello verde azulado fluido, chaqueta asimétrica entallada, mangas fruncidas, faldón lateral en capas y botas detalladas. El modelo de 1024 × 1664 utiliza las ilustraciones transparentes originales de `examples/puppet/imeru/artwork/`. Las mallas continuas del cuerpo y las mangas conservan el dibujo al animar cabeza, cabello y brazos; los elementos faciales separados permiten parpadear, mirar y hablar. Se mantienen los parámetros de entrada estándar, ocho movimientos, siete expresiones y las interacciones con cabeza y cuerpo. `py -3 examples/puppet/imeru/build.py` reconstruye el archivo desde estos recursos. Se abre mediante **File > Examples > Imeru** u **Open Puppet…**.
+**Imeru** (`../Rigora/examples/puppet/imeru.puppet`). Imeru es la mascota original de cuerpo completo de Imervue, redibujada en estilo anime moderno con cabello verde azulado fluido, chaqueta asimétrica entallada, mangas fruncidas, faldón lateral en capas y botas detalladas. El modelo de 1024 × 1664 utiliza las ilustraciones transparentes originales de `../Rigora/examples/puppet/imeru/artwork/`. Las mallas continuas del cuerpo y las mangas conservan el dibujo al animar cabeza, cabello y brazos; los elementos faciales separados permiten parpadear, mirar y hablar. Se mantienen los parámetros de entrada estándar, ocho movimientos, siete expresiones y las interacciones con cabeza y cuerpo. `py -3 ../Rigora/examples/puppet/imeru/build.py` reconstruye el archivo desde estos recursos. Se abre mediante **File > Examples > Imeru** u **Open Puppet…**.
 
 ---
 
@@ -784,7 +786,7 @@ El bocadillo de la mascota se nutre de un archivo JSON que puedes crear tú mism
 
 Las líneas rotan por turnos (round-robin) en cada grupo para que el usuario no escuche la misma línea dos veces seguidas. **Reset to default** descarta el script personalizado y restaura el conjunto de saludos integrado.
 
-Un ejemplo funcional está en [`examples/desktop_pet/imeru.petscript.json`](../examples/desktop_pet/imeru.petscript.json); sus líneas de cabeza y cuerpo responden a los clics en los hit areas `Head` y `Body` de Imeru.
+Un ejemplo funcional está en [`../Rigora/examples/desktop_pet/imeru.petscript.json`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/desktop_pet/imeru.petscript.json); sus líneas de cabeza y cuerpo responden a los clics en los hit areas `Head` y `Body` de Imeru.
 
 ---
 

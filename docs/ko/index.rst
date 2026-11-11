@@ -1,6 +1,8 @@
 Imervue 사용 설명서
 ===================
 
+Puppet과 Desktop Pet은 외부 Rigora 패키지를 사용합니다. Imervue는 탭과 기존 CLI/MCP 명령을 유지하지만 별도의 애니메이션 구현을 포함하지 않습니다. Rigora는 현재 비공개 저장소이며 공개 패키지는 아직 출시되지 않았습니다. 접근 권한이 있는 인접 checkout에서 같은 Python 환경으로 ``python -m pip install "../Rigora[gui]"`` 를 실행한 뒤 Imervue를 다시 시작하세요. Rigora가 없으면 해당 탭에 설치 안내가 나타나고 Imervue의 다른 기능은 계속 사용할 수 있습니다. Rigora는 자체 설정과 모델 캐시를 관리하며, 처음 내장 실행할 때 관련 기존 환경설정을 가져오되 설정 파일을 공유하지 않습니다. Rigora는 접근 권한이 있는 checkout 또는 wheel에서 별도로 설치하세요. 공개 소비자 패키지는 미출시 Rigora 의존성을 선언하지 않습니다. 공개된 패키징 실행 파일에는 빌드 시 제공하지 않는 한 비공개 Rigora가 포함되지 않습니다. 외부 pip 설치로 기존 패키징 실행 파일에 Rigora를 추가할 수 없습니다.
+
 파일 트리 검색 결과는 Enter 또는 두 번 클릭으로 바로 열 수 있으며, 트리에서 위치를 찾는 작업도 별도로 유지됩니다. 결과는 파일 이름과 상대 경로를 구분하고 검색어를 지우지 않고 접을 수 있습니다. 트리 위에는 정렬이 전역인지 현재 폴더에만 적용되는지 표시하며, 날짜와 크기에 맞는 방향 문구와 초기화 버튼을 제공합니다. 검색 폴더와 하위 폴더 범위를 표시하고, 독립적인 이미지 필터에는 개별 해제 조건, 일치 개수, 조건에 맞지 않아도 직접 열었으므로 유지되는 이미지 안내를 표시합니다.
 
 Modify는 원본 덮어쓰기와 사본 저장을 구분하고 대상 위치를 표시합니다. 자르기도 원본에 쓰는지 명시합니다. 읽기 전용 원본 형식은 사본을 사용하며, 쓰기에 실패하면 편집을 유지하고 성공하면 실제 경로를 표시합니다. Paint로 보낼 때 원본 또는 현재의 전체 품질 현상 결과를 선택하고 주석 포함 여부를 명시하여 새 문서를 만듭니다. 기존 Paint 문서와 실행 취소 기록은 유지됩니다.
@@ -893,7 +895,7 @@ Puppet 작업 공간 (Puppet 탭)
 예제
 ^^^^
 
-**Imeru** (``examples/puppet/imeru.puppet``). Imeru는 Imervue의 오리지널 전신 캐릭터로, 풍성하게 흐르는 청록색 머리, 허리선을 살린 비대칭 재킷, 주름 잡힌 소매, 겹쳐진 측면 장식과 정교한 부츠를 갖춘 현대 애니메이션 스타일로 다시 그렸습니다. 1024 × 1664 모델은 ``examples/puppet/imeru/artwork/``\ 에 저장된 원본 투명 삽화를 사용합니다. 몸과 소매의 연속된 메시가 그림을 유지하면서 머리, 머리카락과 팔을 움직이며 별도 얼굴 소재가 눈 깜박임, 시선과 말하기를 표현합니다. 표준 입력 매개변수, 8개 모션, 7개 표정과 머리/몸 상호작용은 유지됩니다. ``py -3 examples/puppet/imeru/build.py``\ 로 저장된 소재에서 모델을 다시 만들 수 있습니다. **File > Examples > Imeru** 또는 **Open Puppet…**\ 로 엽니다.
+**Imeru** (``../Rigora/examples/puppet/imeru.puppet``). Imeru는 Imervue의 오리지널 전신 캐릭터로, 풍성하게 흐르는 청록색 머리, 허리선을 살린 비대칭 재킷, 주름 잡힌 소매, 겹쳐진 측면 장식과 정교한 부츠를 갖춘 현대 애니메이션 스타일로 다시 그렸습니다. 1024 × 1664 모델은 ``../Rigora/examples/puppet/imeru/artwork/``\ 에 저장된 원본 투명 삽화를 사용합니다. 몸과 소매의 연속된 메시가 그림을 유지하면서 머리, 머리카락과 팔을 움직이며 별도 얼굴 소재가 눈 깜박임, 시선과 말하기를 표현합니다. 표준 입력 매개변수, 8개 모션, 7개 표정과 머리/몸 상호작용은 유지됩니다. ``py -3 ../Rigora/examples/puppet/imeru/build.py``\ 로 저장된 소재에서 모델을 다시 만들 수 있습니다. **File > Examples > Imeru** 또는 **Open Puppet…**\ 로 엽니다.
 
 모든 Cubism 표준 매개변수 (``ParamAngleX/Y/Z``、``ParamEyeLOpen/ROpen``、``ParamBreath``、``ParamMouthOpenY`` …) 에 더해 팔용 ``ParamArmLA/LB/RA/RB`` 가 있어, 모든 표준 입력 드라이버 (웹캠, 깜빡임, 립싱크, 커서 추적) 가 rig 별 설정 없이 동작합니다. 파일에는 모션 8 개가 들어 있습니다. ``Idle`` 그룹에 반복 재생되는 idle 모션 2 개, ``TapHead`` 에 ``tap_head``, ``TapBody`` 에 ``shy`` (머리나 몸을 클릭하면 재생), ``Gesture`` 에 ``greet``, ``wave``, ``surprised``, ``sleepy`` 가 있으며, 표정 7 개 (smile, happy, surprised, sad, angry, blush, sleepy) 가 함께 들어 있습니다.
 
@@ -901,7 +903,7 @@ Puppet 탭을 열고 **Open Puppet…** 을 클릭해 ``imeru.puppet`` 을 선�
 
 **동봉 예제 실행 — 단계별 가이드:**
 
-1. **Imervue 실행**. 소스에서: ``python -m Imervue``. 패키지 빌드: ``Imervue`` 실행 파일 / app bundle 을 직접 실행. ``examples/`` 디렉터리는 Nuitka 와 PyInstaller 빌드에 번들되어 있으며, pip / wheel 설치에는 포함되지 않습니다 (소스 체크아웃에서는 rig 가 ``examples/puppet/`` 에 있습니다).
+1. **Imervue 실행**. 소스에서: ``python -m Imervue``. 패키지 빌드: ``Imervue`` 실행 파일 / app bundle 을 직접 실행. ``examples/`` 디렉터리는 Nuitka 와 PyInstaller 빌드에 번들되어 있으며, pip / wheel 설치에는 포함되지 않습니다 (소스 체크아웃에서는 rig 가 ``../Rigora/examples/puppet/`` 에 있습니다).
 2. 창 상단의 **Puppet** 탭을 클릭.
 3. **File > Examples > Imeru** (또는 도구 모음의 **Examples ▾** 드롭다운). rig 가 중앙에 로드되고, 매개변수 도크는 그 rig 의 슬라이더로 채워집니다.
 4. 하단 **Motions** 도크에서 모션 항목 (``idle_look``、``wave``、``tap_head`` …) 을 싱글 클릭. 즉시 재생 시작; 다시 클릭하면 처음부터 다시 재생, 도크의 **Stop** 버튼으로 정지, 다른 모션 선택 시 크로스페이드.
@@ -942,7 +944,7 @@ Puppet 탭을 열고 **Open Puppet…** 을 클릭해 ``imeru.puppet`` 을 선�
      "physics": "physics.json"
    }
 
-전체 사양 (drawables, deformers, parameters, motions, expressions, pose, physics) 은 저장소의 ``Imervue/puppet/FORMAT.md`` 에 있습니다. JSON + PNG 만 사용 — 독점 바이너리가 없어 git 으로 완전히 diff 할 수 있습니다.
+전체 사양 (drawables, deformers, parameters, motions, expressions, pose, physics) 은 저장소의 `Rigora FORMAT.md <https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md>`_ 에 있습니다. JSON + PNG 만 사용 — 독점 바이너리가 없어 git 으로 완전히 diff 할 수 있습니다.
 
 이 형식은 개방되어 있고 기계로 검증할 수 있습니다:
 
@@ -952,7 +954,7 @@ Puppet 탭을 열고 **Open Puppet…** 을 클릭해 ``imeru.puppet`` 을 선�
 - 네 개의 JSON Schema(draft 2020-12) — ``puppet``, ``motion``, ``expression``,
   ``physics`` — 가 ``docs/schemas/``\ 에 공개되어 있어, ``$schema``\ 를 따르는 편집기는
   입력하는 동안 파일을 검사합니다.
-- ``py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet``\ (MCP ``puppet_validate``)은
+- ``py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet``\ (MCP ``puppet_validate``)은
   스키마, 로더 규칙, 리그 검사에 맞춰 파일을 검사하고, ``puppet-schema``\ (MCP
   ``puppet_schema``)는 스키마를 출력합니다.
 - ``docs/examples/read_puppet.py``\ 는 다른 프로그램을 위한 참고 구현으로, Python 표준
@@ -976,7 +978,7 @@ Puppet 탭을 열고 **Open Puppet…** 을 클릭해 ``imeru.puppet`` 을 선�
    * - 액션
      - 용도
    * - Open Puppet… / Examples ▾
-     - 디스크에서 ``.puppet`` 로드 (**File** 메뉴), 또는 ``examples/puppet/`` 의 동봉 rig 를 **Examples ▾** (도구 모음 버튼, **File** 에도 있음) 에서 선택
+     - 디스크에서 ``.puppet`` 로드 (**File** 메뉴), 또는 ``../Rigora/examples/puppet/`` 의 동봉 rig 를 **Examples ▾** (도구 모음 버튼, **File** 에도 있음) 에서 선택
    * - Import PNG… / Import PSD… / Import Cubism…
      - PNG 자동 메시, PSD 레이어 분할, Cubism rig 의 sample-and-reconstruct. Cubism 파일 선택기는 ``.moc3`` 와 ``.model3.json`` 둘 다 받으며, 작업 공간에 rig 가 열려 있지 않을 때는 어느 경로든 완전한 ``.moc3 → .puppet`` 변환이 실행됩니다 (SDK 는 사용자 제공). rig 가 이미 열려 있는 상태에서 ``.model3.json`` 을 고르면 JSON 메타데이터 (motions / expressions / physics) 가 활성 문서에 병합됩니다
    * - Recent
@@ -1111,11 +1113,7 @@ rig 불러오기
 탭은 세 가지 불러오기 경로를 제공합니다:
 
 * **Open Puppet…** — 디스크의 임의 ``.puppet`` 파일을 선택.
-* **Load bundled Imeru** — ``examples/puppet/imeru.puppet`` 에
-  포함된 rig 을 엽니다. 리졸버는 먼저 ``examples_dir()`` 을 검색하고
-  (패키지된 Nuitka / PyInstaller 빌드에서는 프로그램 옆, 소스
-  체크아웃에서는 리포지토리 루트), 그다음 현재 작업 폴더 기준 상대
-  경로로 폴백합니다.
+* **Load bundled Imeru** — Rigora는 ``rigora.system.app_paths.examples_dir()`` 를 통해 설치된 패키지의 ``rigora/resources/examples/puppet/imeru.puppet`` 을 불러옵니다. 파일이 없으면 리소스가 포함된 접근 권한이 있는 Rigora 패키지를 다시 설치하세요.
 * **마지막 rig** — 이전에 불러왔던 rig 은 ``last_rig_path`` 설정
   필드를 통해 Imervue 시작 시 자동 복원됩니다. Desktop Pet 탭이
   오버레이를 보이지 않게 재인스턴스화하므로, 펫은 종료한 상태 그대로
@@ -1378,7 +1376,7 @@ opencv-python + mediapipe" 힌트가 표시됩니다.
 로드되지 않습니다.
 
 동작하는 샘플은
-``examples/desktop_pet/imeru.petscript.json`` 에 있습니다 — 인사말
+``../Rigora/examples/desktop_pet/imeru.petscript.json`` 에 있습니다 — 인사말
 6개, 시간대마다 대사 하나씩, 히트 영역 버킷 2개 (``Head`` / ``Body``),
 모션 5개의 대사 (wave / greet / surprised / sleepy / shy), 30분
 스트레칭 알림 포함. 버킷 이름이 Imeru 의 히트 영역 이름이므로 머리와
@@ -1542,12 +1540,7 @@ rig 은 자신이 가진 모션 그룹에만 반응하며, 없는 그룹은 아�
 (일부 Linux 사용자 정의 창 관리자가 그렇게 함). Windows / macOS
 에서는 "그냥 동작" 해야 합니다.
 
-**"Load bundled Imeru" 가 파일을 찾을 수 없다고 보고함.**
-리졸버는 먼저 ``examples_dir()`` (패키지된 빌드가 사용하는 frozen-safe
-위치) 을 참조한 후 CWD 상대 경로로 폴백합니다. 둘 다에 rig 이 없으면
-상태 라벨이 기대 경로를 표시합니다. 설치본과 함께 동봉된
-``examples/`` 디렉터리가 있는지 확인 — 소스 체크아웃의 경우 리포지토리
-루트에서 Imervue 를 실행하세요.
+**"Load bundled Imeru" 가 파일을 찾을 수 없다고 보고함.** Rigora는 ``rigora.system.app_paths.examples_dir()`` 를 통해 설치된 패키지의 ``rigora/resources/examples/puppet/imeru.puppet`` 을 불러옵니다. 파일이 없으면 리소스가 포함된 접근 권한이 있는 Rigora 패키지를 다시 설치하세요.
 
 **클릭해도 펫이 말하지 않음.** 세 가지 확인:
 

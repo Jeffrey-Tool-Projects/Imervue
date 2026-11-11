@@ -10,6 +10,8 @@ import dataclasses
 from types import SimpleNamespace
 
 import pytest
+
+pytest.importorskip("rigora", reason="external desktop-pet runtime is optional")
 from PySide6.QtWidgets import QMenu, QMessageBox
 
 from _pet_fakes import FakeHost

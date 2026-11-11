@@ -5,14 +5,30 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 from PySide6.QtCore import QCoreApplication, QObject, QThread, QTimer, Signal
 from shiboken6 import isValid
 
-from Imervue.system.job_state import JobState, TERMINAL
+from Imervue.system.job_state import JobItem, JobSnapshot, TERMINAL
 
 logger = logging.getLogger("Imervue.jobs")
 RetryFactory = Callable[[tuple[str, ...]], QThread]
+
+
+@runtime_checkable
+class JobStateSource(Protocol):
+    """State operations used by the host panel, including externally owned jobs."""
+
+    def snapshot(self, *, include_items: bool = True) -> JobSnapshot: ...
+
+    def finish(self, *, error: str = "") -> None: ...
+
+    def request_cancel(self) -> None: ...
+
+    def failed_paths(self) -> tuple[str, ...]: ...
+
+    def visible_results(self, limit: int) -> tuple[tuple[JobItem, ...], int]: ...
 
 
 @dataclass
@@ -20,7 +36,7 @@ class Job:
     """Retain work until actual thread exit; retry factories capture settings, never dialogs."""
 
     title: str
-    state: JobState
+    state: JobStateSource
     worker: QThread | None
     retry_factory: RetryFactory | None = None
     owned: bool = False
@@ -71,7 +87,7 @@ class JobRegistry(QObject):
     ) -> Job:
         """Register before start; callers retain existing worker/dialog ownership contracts."""
         if not isinstance(worker, QThread) or not isinstance(
-            getattr(worker, "job_state", None), JobState
+            getattr(worker, "job_state", None), JobStateSource
         ):
             raise TypeError("A background job requires a QThread with JobState")
         # A Python reference does not protect a child QThread from its QWidget
@@ -84,9 +100,9 @@ class JobRegistry(QObject):
         self.changed.emit()
         return job
 
-    def add_completed(self, title: str, state: JobState) -> Job:
+    def add_completed(self, title: str, state: JobStateSource) -> Job:
         """Retain synchronous output results in the same cross-window report/open panel."""
-        if (not isinstance(state, JobState)
+        if (not isinstance(state, JobStateSource)
                 or state.snapshot(include_items=False).status not in TERMINAL):
             raise ValueError("A completed result requires terminal JobState")
         job = Job(title, state, None)
@@ -94,9 +110,10 @@ class JobRegistry(QObject):
         self.changed.emit()
         return job
 
-    def add_activity(self, title: str, state: JobState, cancel: Callable[[], object]) -> Job:
+    def add_activity(self, title: str, state: JobStateSource, cancel: Callable[[], object]) -> Job:
         """Track a GUI-owned recording until its completion signal finishes the state."""
-        if state.snapshot(include_items=False).status in TERMINAL:
+        if (not isinstance(state, JobStateSource)
+                or state.snapshot(include_items=False).status in TERMINAL):
             raise ValueError("An activity requires a running JobState")
         job = Job(title, state, None, cancel_callback=cancel)
         self.jobs.append(job)

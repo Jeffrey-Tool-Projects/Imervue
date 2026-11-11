@@ -24,6 +24,7 @@ _JAPANESE_TR540D524D30925909 = '名前を変更'
 _JAPANESE_TR30B030E930C730FC = 'グラデーション'
 
 japanese_word_dict = {
+    "rigora_missing_notice": 'Puppet と Desktop Pet には Rigora が必要です。ソースから使用する場合は、同じ Python 環境にアクセス権のある Rigora checkout または wheel をインストールして Imervue を再起動してください。配布実行ファイルにはビルド時に Rigora を含める必要があり、外部の pip では追加できません。',
     "heif_install_hint": "HEIC 画像を表示するには pillow-heif をインストールしてください。",
     "exif_location": "場所",
     "exif_coordinates": "座標",

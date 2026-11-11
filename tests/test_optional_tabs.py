@@ -11,7 +11,7 @@ from Imervue.gui.optional_tabs import DESKTOP_PET_TAB, PUPPET_TAB
 from Imervue.user_settings.user_setting_dict import user_setting_dict
 
 _ROOT = Path(__file__).resolve().parents[1] / "Imervue"
-_OPTIONAL_PACKAGES = ("Imervue.puppet", "Imervue.desktop_pet")
+_OPTIONAL_PACKAGES = ("rigora.puppet", "rigora.desktop_pet")
 # The two packages themselves, and the MCP server, which reads .puppet files with the
 # Qt-free puppet modules; everything else imports them only inside a function.
 _ALLOWED = ("puppet", "desktop_pet", "mcp_server")
@@ -34,7 +34,9 @@ def test_only_the_two_optional_tabs_can_be_turned_off():
 
 @pytest.mark.parametrize("shown", [True, False])
 def test_pet_shows_on_launch_follows_the_pet_setting(shown):
-    from Imervue.desktop_pet import settings as pet_settings
+    pytest.importorskip("rigora", reason="optional Rigora integration")
+    from rigora.desktop_pet import settings as pet_settings
+    assert optional_tabs.initialize_embedded_rigora()
     pet_settings.update(show_on_launch=shown)
     assert optional_tabs.pet_shows_on_launch() is shown
 

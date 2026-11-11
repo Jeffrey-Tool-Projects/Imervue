@@ -58,6 +58,11 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261111-06 | 2026-11-11 | Complete external Rigora source migration | #done #rigora #Imervue_Plugins | [2026-11.md](2026-11.md) |
+| U-20261111-05 | 2026-11-11 | Keep private Rigora distribution explicit | #decision #rigora | [2026-11.md](2026-11.md) |
+| U-20261111-04 | 2026-11-11 | Move desktop pet plugin controllers to Rigora | #migration #Imervue_Plugins #rigora | [2026-11.md](2026-11.md) |
+| U-20261111-03 | 2026-11-11 | Move Puppet implementation into optional Rigora package | #migration #rigora | [2026-11.md](2026-11.md) |
+| U-20261111-02 | 2026-11-11 | Correct the initial Rigora extraction snapshot | #decision #rigora | [2026-11.md](2026-11.md) |
 | U-20261111-01 | 2026-11-11 | Start Rigora extraction and revise Imeru art direction | #migration #docs #done | [2026-11.md](2026-11.md) |
 | U-20261104-02 | 2026-11-04 | Keep the folder tree after Deep Zoom or theater mode | #fix #ui | [2026-11.md](2026-11.md) |
 | U-20261104-01 | 2026-11-04 | Deep Zoom gives the image the whole window | #feature #ui | [2026-11.md](2026-11.md) |
@@ -69,6 +74,6 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 | [2026-09.md](2026-09.md) | 2026-09 | 278 |
 | [2026-09-b.md](2026-09-b.md) | 2026-09 | 86 |
 | [2026-09-c.md](2026-09-c.md) | 2026-09 | 36 |
-| [2026-11.md](2026-11.md) | 2026-11 | 4 |
+| [2026-11.md](2026-11.md) | 2026-11 | 9 |
 | [2026-10.md](2026-10.md) | 2026-10 | 108 |
 | [2026-10-b.md](2026-10-b.md) | 2026-10 | 42 |

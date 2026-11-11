@@ -7,6 +7,8 @@ needed and the headless-CI crash is avoided.
 """
 from __future__ import annotations
 
+import pytest
+
 from types import SimpleNamespace
 
 from Imervue.gpu_image_view.gl_context import make_current_guard, needs_make_current
@@ -103,7 +105,8 @@ def test_make_current_guard_is_noop_without_a_context(qapp):
 
 
 def test_puppet_canvas_delegates_to_the_shared_guard(qapp):
-    from Imervue.puppet.canvas import PuppetCanvas
+    pytest.importorskip("rigora", reason="optional Rigora integration")
+    from rigora.puppet.canvas import PuppetCanvas
     fake, calls = _ctx_fake(object(), valid=True)
     with PuppetCanvas._current_gl_context(fake):
         calls.append("body")

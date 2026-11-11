@@ -6,9 +6,6 @@ Cross-repo and workspace items live in `D:\Codes\progress.md` (relevant here: S-
 
 ## Open
 
-- Rigora standalone extraction is in progress. The ordered plan is in `docs/puppet-extraction-plan.md`; the independent checkout is `D:/Codes/Rigora`, with remote `https://github.com/Jeffrey-Tool-Projects/Rigora`. Source baselines and initial history extraction are recorded in `docs/updates/2026-11.md`.
-  Next: separate document/archive/runtime and atomic file writes from Imervue, then build and test an independent package. Resolve GUI/shared services and migrate Imervue/FrontEngine consumers before removing bundled code. Rigora is not independently installable yet. The revised Imeru prompt is `examples/puppet/imeru/concepts/rigora-art-direction-v2.md`; render and inspect it before replacing any existing artwork.
-
 - [BLOCKED] Codacy file-complexity threshold: every runtime file that scored 80 or more is split (PR #111, fix/main-quality). Hosted Codacy still flags files above the current threshold of 20; at 60 about 50 files would remain, at 50 about 88.
   Next: the owner raises the threshold in the Codacy repository quality settings (the environment Codacy token returns HTTP 401 here), then decide whether the 60-80 band needs another pass. canvas_render.py remains at 68.
 
@@ -25,5 +22,5 @@ Cross-repo and workspace items live in `D:\Codes\progress.md` (relevant here: S-
 - More pre-existing quirks pinned (not fixed) by the split contracts: a press exactly at (0, 0) never starts a GPU-view drag-select (input_controller_tiles); with a selection, normal brush blend writes the brush RGB into fully transparent pixels outside it (alpha stays 0; brush_dab). The .codacy.yaml bandit entry for clip_search.py and the .bandit B403 comment about its torch pickle loading look stale (no subprocess or pickle code remains there).
   Next: confirm each with a focused test, fix or drop it, and update the contract that pins it.
 
-- After the dev merge, user_setting_dict.py and puppet/webcam_tracker.py measure 83 locally (dev added code to both); hosted Codacy scored them 76 and below 80 before the merge.
-  Next: check their hosted scores once the merge lands on main and split either one that reaches 80.
+- After the dev merge, user_setting_dict.py measures 83 locally; hosted Codacy previously scored it 76. The former puppet/webcam_tracker.py belongs to Rigora after extraction.
+  Next: check their hosted scores once the merge lands on main and split the remaining Imervue module if it reaches 80.

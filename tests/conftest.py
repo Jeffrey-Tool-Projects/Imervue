@@ -24,6 +24,25 @@ _GUI_SOURCE_MARKERS: Final = (
 )
 
 
+@pytest.fixture(autouse=True)
+def _isolate_rigora_settings(tmp_path, monkeypatch):
+    """Keep the optional animation package away from the user's own settings."""
+    from Imervue.system import rigora_integration
+
+    monkeypatch.setenv("RIGORA_SETTINGS_PATH", str(tmp_path / "rigora.json"))
+    monkeypatch.setattr(rigora_integration, "_initialized", False)
+    try:
+        from rigora.system import settings
+    except ModuleNotFoundError as exc:
+        if exc.name != "rigora":
+            raise
+        yield
+        return
+    settings.configure(path=tmp_path / "rigora.json", autosave=False)
+    yield
+    settings.cancel_pending_save()
+
+
 def pytest_addoption(parser):
     """Expose a stable test-layer selector for local runs and CI."""
     parser.addoption(

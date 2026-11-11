@@ -436,6 +436,10 @@ class ImervueMainWindow(
                 with best_effort(f"shut down {name}", _logger):
                     workspace.shutdown()
 
+        with best_effort("write Rigora settings", _logger):
+            from Imervue.system.rigora_integration import flush_rigora_settings
+            flush_rigora_settings()
+
         # --- 安全關閉修改面板 ---
         # 停止預覽防抖計時器 — 未儲存的 recipe 變更在關閉時丟棄
         with best_effort("stop the Modify panel's preview debounce", _logger):

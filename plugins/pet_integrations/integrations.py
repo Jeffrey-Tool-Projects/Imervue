@@ -1,6 +1,6 @@
 """The desktop pet's four integrations: OBS events, Twitch chat, a local webhook, Windows toasts.
 
-Each one is an :class:`~Imervue.desktop_pet.pet_feature_base.IntegrationController`
+Each one is an :class:`~rigora.desktop_pet.pet_feature_base.IntegrationController`
 the plugin hands the pet with ``pet.add_integration`` (see
 ``ImervuePlugin.on_pet_created``). The controllers talk to the pet only through
 its plugin surface — ``play_group``, ``speak``, ``speak_notification``,
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from Imervue.desktop_pet.pet_feature_base import FeatureHost, IntegrationController
+from rigora.desktop_pet.pet_feature_base import FeatureHost, IntegrationController
 
 from pet_integrations.obs_event_hook import ObsEventClient
 from pet_integrations.twitch_chat_hook import TwitchChatClient

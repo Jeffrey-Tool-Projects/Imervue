@@ -312,9 +312,10 @@ def test_custom_curve_and_rating_surfaces_explain_their_gestures(qapp):
 
 
 def test_puppet_tip_uses_parameter_units_instead_of_internal_slider_steps(qapp):
-    from Imervue.puppet.canvas import PuppetCanvas
-    from Imervue.puppet.document import Parameter, PuppetDocument
-    from Imervue.puppet.parameter_dock import ParameterDock
+    pytest.importorskip("rigora", reason="optional Rigora integration")
+    from rigora.puppet.canvas import PuppetCanvas
+    from rigora.puppet.document import Parameter, PuppetDocument
+    from rigora.puppet.parameter_dock import ParameterDock
     canvas = PuppetCanvas()
     dock = ParameterDock(canvas)
     doc = PuppetDocument(size=(100, 100))

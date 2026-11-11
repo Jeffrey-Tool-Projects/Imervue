@@ -36,6 +36,8 @@ Modify 明确区分覆盖原文件与另存副本，并显示目标位置。裁�
 
 状态栏可打开 Background Jobs，并显示运行中与失败数量。Puppet 截图及录制会在其中保留输出路径或失败详情，之后仍可打开成品或文件夹。录制不提供不适用的重试操作。摄像头控制显示实际启动、运行、停止中与错误状态，提供设备选择、重试及诊断；缺少依赖包时才提供安装。命令面板会说明命令不可用的原因，并优先排列最近或经常使用的命令。
 
+Puppet 与 Desktop Pet 现在使用外部 Rigora 软件包。Imervue 保留标签页及现有 CLI/MCP 命令，但不再内置第二份动画引擎。Rigora 目前是私有仓库，尚未公开发布软件包。取得授权的相邻 checkout 后，请在同一个 Python 环境执行 `python -m pip install "../Rigora[gui]"`，再重新启动 Imervue。未安装 Rigora 时，这些标签页会显示安装提示，Imervue 其他功能仍可使用。Rigora 自行管理设置与模型缓存；首次嵌入启动会导入相关现有偏好，但不共享设置文件。 请另外安装已授权的 Rigora checkout 或 wheel；公开使用方软件包不声明尚未发布的 Rigora 依赖。公开的冻结可执行文件不包含私有 Rigora，除非构建时已提供。使用外部 pip 安装 Rigora 无法将其加入现有冻结可执行文件。
+
 ## 目录
 
 - [概述](#概述)
@@ -520,7 +522,7 @@ Undo／Redo 可恢复图层的新增、删除、排序与合并，以及图层�
 
 > **完整教程**：[`puppet_guide.zh-CN.md`](../puppet_guide.zh-CN.md) 涵盖直播（OBS / NDI / 虚拟摄像头）与动画制作（录制 / 时间轴编辑 / MP4 导出）的端到端流程。英文版于 [`puppet_guide.md`](../puppet_guide.md)、繁体中文于 [`puppet_guide.zh-TW.md`](../puppet_guide.zh-TW.md)。
 
-**Puppet** 标签是从零打造的 2D 绑骨偶动画系统：网格变形绑骨、参数、动作、物理、表情、姿势、对嘴与摄像头脸部追踪，**不依赖任何专有 SDK**、**不使用 `live2d-py`**，采用完全开放的 `.puppet` 文件格式，规格完整记录于 `Imervue/puppet/FORMAT.md`。
+**Puppet** 标签是从零打造的 2D 绑骨偶动画系统：网格变形绑骨、参数、动作、物理、表情、姿势、对嘴与摄像头脸部追踪，**不依赖任何专有 SDK**、**不使用 `live2d-py`**，采用完全开放的 `.puppet` 文件格式，规格完整记录于 [`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)。
 
 ### 文件格式
 
@@ -532,7 +534,7 @@ Undo／Redo 可恢复图层的新增、删除、排序与合并，以及图层�
 - `expressions/*.json` — 参数叠加
 - `physics.json` — Verlet 物理配置
 
-JSON 为主，人类可 diff，没有专有二进制。格式是开放且可校验的：保存的文件以一个未压缩的 `mimetype` 条目（`application/vnd.imervue.puppet+zip`）开头，每个 JSON 文件都在 `$schema` 中注明自己的 schema；四份 JSON Schema 发布在 [`docs/schemas/`](../docs/schemas/)；`py -m Imervue.cli puppet-validate examples/puppet/imeru.puppet`（MCP `puppet_validate`）可检查文件，`puppet-schema`（MCP `puppet_schema`）则输出某一份 schema；[`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) 仅用 Python 标准库即可读取 `.puppet`。规格（[`Imervue/puppet/FORMAT.md`](../Imervue/puppet/FORMAT.md)）与 schema 均采用 MIT 许可，任何程序都可以读写 `.puppet` 文件。
+JSON 为主，人类可 diff，没有专有二进制。格式是开放且可校验的：保存的文件以一个未压缩的 `mimetype` 条目（`application/vnd.imervue.puppet+zip`）开头，每个 JSON 文件都在 `$schema` 中注明自己的 schema；四份 JSON Schema 发布在 [`docs/schemas/`](../docs/schemas/)；`py -m Imervue.cli puppet-validate ../Rigora/examples/puppet/imeru.puppet`（MCP `puppet_validate`）可检查文件，`puppet-schema`（MCP `puppet_schema`）则输出某一份 schema；[`docs/examples/read_puppet.py`](../docs/examples/read_puppet.py) 仅用 Python 标准库即可读取 `.puppet`。规格（[`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)）与 schema 均采用 MIT 许可，任何程序都可以读写 `.puppet` 文件。
 
 ### 渲染器
 
@@ -642,7 +644,7 @@ OBS **Sources > + > Window Capture** 可以直接抓 Imervue 窗口，零依赖�
 
 ### 示例
 
-**Imeru** (`examples/puppet/imeru.puppet`). Imeru 是 Imervue 的原创全身角色，重新绘制为现代动漫风，具有蓬松流动的深青发型、收腰不对称外套、宽松袖子、多层侧裙与精致靴子。1024 × 1664 模型使用保存在 `examples/puppet/imeru/artwork/` 的原创透明插画。连续的身体与袖面网格保留完整画风，带动头部、头发和手臂；独立五官素材提供眨眼、视线及说话动画。标准输入参数、八组动作、七种表情与头部／身体互动均保留。`py -3 examples/puppet/imeru/build.py` 可从这些素材重建模型。通过 **File > Examples > Imeru** 或 **Open Puppet…** 打开。
+**Imeru** (`../Rigora/examples/puppet/imeru.puppet`). Imeru 是 Imervue 的原创全身角色，重新绘制为现代动漫风，具有蓬松流动的深青发型、收腰不对称外套、宽松袖子、多层侧裙与精致靴子。1024 × 1664 模型使用保存在 `../Rigora/examples/puppet/imeru/artwork/` 的原创透明插画。连续的身体与袖面网格保留完整画风，带动头部、头发和手臂；独立五官素材提供眨眼、视线及说话动画。标准输入参数、八组动作、七种表情与头部／身体互动均保留。`py -3 ../Rigora/examples/puppet/imeru/build.py` 可从这些素材重建模型。通过 **File > Examples > Imeru** 或 **Open Puppet…** 打开。
 
 ---
 
@@ -732,7 +734,7 @@ OBS **Sources > + > Window Capture** 可以直接抓 Imervue 窗口，零依赖�
 
 每个桶（bucket）内的台词以 round-robin 轮替，使用户不会连续两次看到同一句。**Reset to default** 会丢弃自定义脚本，恢复内建的问候语组。
 
-一个可用的示例位于 [`examples/desktop_pet/imeru.petscript.json`](../examples/desktop_pet/imeru.petscript.json)；其中 head 与 body 的台词会回应对 Imeru 的 `Head` 和 `Body` 命中区域的点击。
+一个可用的示例位于 [`../Rigora/examples/desktop_pet/imeru.petscript.json`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/desktop_pet/imeru.petscript.json)；其中 head 与 body 的台词会回应对 Imeru 的 `Head` 和 `Body` 命中区域的点击。
 
 ---
 

@@ -10,6 +10,7 @@ _NO_EXPORT_IMAGES = '沒有可匯出的圖片。'
 _EXPORT_FAILED = '匯出失敗：{err}'
 
 traditional_chinese_word_dict = {
+    "rigora_missing_notice": 'Puppet 與桌面寵物需要 Rigora。原始碼安裝請在同一個 Python 環境安裝已授權的 Rigora checkout 或 wheel，再重新啟動 Imervue。封裝執行檔必須使用建置時已包含 Rigora 的版本，無法透過外部 pip 加入。',
     "heif_install_hint": "安裝 pillow-heif 以檢視 HEIC 影像。",
     "exif_location": "地點",
     "exif_coordinates": "座標",

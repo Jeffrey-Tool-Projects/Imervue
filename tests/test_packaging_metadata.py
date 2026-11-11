@@ -39,6 +39,12 @@ def test_dev_toml_mirrors_pyproject_project_table():
         assert dev["project"][key] == main["project"][key], key
 
 
+def test_private_rigora_is_installed_separately():
+    project = _toml("pyproject.toml")["project"]
+    assert "puppet" not in project.get("optional-dependencies", {})
+    assert not any(dependency.lower().startswith("rigora") for dependency in project["dependencies"])
+
+
 def test_dev_toml_ships_what_pyproject_ships():
     # CI builds Imervue_dev by writing dev.toml to pyproject.toml (scripts/dev_release.py), so
     # anything declared on one side only is a package the tests never ran against.

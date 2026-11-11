@@ -1,5 +1,7 @@
 # Puppet Guide — Live Streaming & Animation Production
 
+Puppet and Desktop Pet now use the external Rigora package. Imervue keeps their tabs and existing CLI/MCP commands, but does not ship a second animation runtime. Rigora is currently a private repository without a public package release. With an authorized sibling checkout, install `python -m pip install "../Rigora[gui]"` in the same Python environment, then restart Imervue. Without Rigora, these tabs show an installation notice and the rest of Imervue remains available. Rigora owns its settings and model cache; the first embedded launch imports relevant existing preferences without sharing the settings file. Install Rigora separately from an authorized checkout or wheel; public consumer packages do not declare an unpublished Rigora dependency. Public frozen executables exclude private Rigora unless it is supplied when building them. Installing Rigora with external pip cannot add it to an existing frozen executable.
+
 A walkthrough for getting from "I want to do VTuber-style streaming
 or make a short animation" to "I'm live on OBS / I have an MP4
 file on disk" using Imervue's **Puppet** tab.
@@ -299,7 +301,7 @@ one without a live performance:
    (see 2.2).
 3. For exact keyframes, write `motions/<name>.json` inside the
    `.puppet` zip by hand and list the name under `motions` in
-   `puppet.json` (see [`FORMAT.md`](Imervue/puppet/FORMAT.md)).
+   `puppet.json` (see [`FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md)).
 
 The **Set key** button next to each slider is a rigging tool, not
 a motion keyframe: it stores every deformer's current form as a
@@ -438,7 +440,7 @@ Every animated value is a *parameter* with a min, max, and
 default. Each of a parameter's `keys` stores deformer forms at one
 parameter value; the runtime interpolates linearly between the two
 keys around the current value and holds the end keys beyond them.
-See `Imervue/puppet/standard_params.py` for the Cubism-standard
+See `rigora/puppet/standard_params.py` for the Cubism-standard
 ids the input drivers expect.
 
 ### Deformers
@@ -616,8 +618,8 @@ re-convert via **File > Import Cubism…** and save the result.
 
 The `.puppet` file format is a zip container with JSON manifests
 and PNG textures. Full spec at
-[`Imervue/puppet/FORMAT.md`](Imervue/puppet/FORMAT.md).
+[`rigora/puppet/FORMAT.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/rigora/puppet/FORMAT.md).
 
-Bundled demo rig: [`examples/puppet/imeru.puppet`](examples/puppet/imeru.puppet), rebuilt
-by `examples/puppet/imeru/build.py`
-(see [`examples/puppet/README.md`](examples/puppet/README.md)).
+Bundled demo rig: [`../Rigora/examples/puppet/imeru.puppet`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/puppet/imeru.puppet), rebuilt
+by `../Rigora/examples/puppet/imeru/build.py`
+(see [`../Rigora/examples/puppet/README.md`](https://github.com/Jeffrey-Tool-Projects/Rigora/blob/main/examples/puppet/README.md)).

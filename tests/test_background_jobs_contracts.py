@@ -48,6 +48,67 @@ def _word(key, fallback):
     return language_wrapper.language_word_dict.get(key, fallback)
 
 
+def test_external_state_uses_the_host_panel_without_subclassing(qapp):
+    from types import SimpleNamespace
+
+    original = JobState(["recording"])
+    original.record("recording", output="clip.gif")
+    original.finish()
+    external = SimpleNamespace(
+        snapshot=original.snapshot,
+        finish=original.finish,
+        request_cancel=original.request_cancel,
+        failed_paths=original.failed_paths,
+        visible_results=original.visible_results,
+    )
+    registry = JobRegistry()
+    try:
+        job = registry.add_completed("External recording", external)
+        assert job.settled
+        assert job.state.visible_results(1)[0][0].output == "clip.gif"
+        registry.clear_finished()
+        assert registry.jobs == []
+    finally:
+        registry.deleteLater()
+
+
+def test_external_worker_state_is_retained_until_thread_finishes(qapp, pump_until):
+    from types import SimpleNamespace
+
+    worker = IdleWorker()
+    original = worker.job_state
+    worker.job_state = SimpleNamespace(
+        snapshot=original.snapshot,
+        finish=original.finish,
+        request_cancel=original.request_cancel,
+        failed_paths=original.failed_paths,
+        visible_results=original.visible_results,
+    )
+    registry = JobRegistry()
+    try:
+        job = registry.add(worker, "External worker")
+        worker.start()
+        assert pump_until(lambda: job.settled)
+        assert job.worker is None
+    finally:
+        assert worker.wait(5000)
+        worker.deleteLater()
+        registry.deleteLater()
+
+
+@pytest.mark.parametrize("method", ["add_completed", "add_activity"])
+def test_registry_rejects_objects_without_the_state_contract(qapp, method):
+    registry = JobRegistry()
+    try:
+        args = ("invalid", object())
+        if method == "add_activity":
+            args += (lambda: None,)
+        with pytest.raises(ValueError, match="JobState"):
+            getattr(registry, method)(*args)
+    finally:
+        registry.deleteLater()
+
+
 def _failed_worker(paths=("a", "b")):
     worker = IdleWorker(paths)
     worker.job_state.record(paths[0], output="out-a.png")
