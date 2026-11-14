@@ -421,3 +421,9 @@ before — the failure mode is a command that *appears* to succeed.
 - **`send2trash` costs ~0.27 s per call regardless of how few files it carries**, versus
   ~0.016 s/file when a whole list goes over in one call (measured 2026-07-30). Every delete path
   must batch through `Imervue/system/trash_ops.py` — never a per-file loop.
+
+## Git worktrees: merge and remove
+
+- Every git worktree created for a task must be finished off: merge its branch back into the branch it was started from, then remove the worktree (`git worktree remove <path>`) and delete its branch (`git branch -d <branch>`).
+- Do not leave worktrees behind when the work is done; check `git worktree list` before ending the task.
+- If a worktree cannot be merged yet, say so explicitly instead of leaving it behind silently.
