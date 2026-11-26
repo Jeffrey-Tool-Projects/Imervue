@@ -54,13 +54,16 @@ class LoadThumbnailWorker(QRunnable):
 
     def _bake_fresh(self, recipe, r_hash: str):
         img_data = self._load_by_extension(orient=recipe is None or recipe.base_is_oriented())
-        if self._abort:
+        if self._abort and self.size is None:
             return None
         img_data = self._ensure_rgba(img_data)
         img_data = self._apply_recipe(img_data, recipe)
         if self.size is not None:
+            # Cached even when the wall moved on mid-decode: the file was read
+            # and decoded already, and the request that replaces this one finds
+            # it on disk instead of decoding it again.
             thumbnail_disk_cache.put(self.path, self.size, img_data, r_hash)
-        return img_data
+        return None if self._abort else img_data
 
     def _load_by_extension(self, *, orient: bool = True):
         from Imervue.image.formats import RAW_EXTENSIONS

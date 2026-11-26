@@ -90,12 +90,20 @@ def sync_tile_grid_incremental(view: GPUImageView, image_paths: list[str]) -> No
             if old in signatures and new not in signatures:
                 signatures[new] = signatures.pop(old)
 
-    view._cancel_tile_workers()
-    view._load_generation += 1
+    new_set = set(image_paths)
+    removed = [p for p in old_images if p not in new_set]
+    queue = getattr(view, "_tile_queue", None)
+    # A folder scan's later batches only add images. The decodes already
+    # running are for images that stay listed, so let them land; cancelling
+    # threw their work away and queued the same files again behind them.
+    keep_workers = (not removed and queue is not None
+                    and queue.generation == view._load_generation)
+    if not keep_workers:
+        view._cancel_tile_workers()
+        view._load_generation += 1
     gen = view._load_generation
 
-    new_set = set(image_paths)
-    for path in [p for p in old_images if p not in new_set]:
+    for path in removed:
         _drop_tile_path(view, path)
 
     old_focus_path = (
@@ -123,8 +131,13 @@ def sync_tile_grid_incremental(view: GPUImageView, image_paths: list[str]) -> No
     view._tile_load_total = len(missing)
     view._tile_load_count = 0
     # Worker spawning lives in tile_loader, which imports this module.
-    from Imervue.gpu_image_view.tile_loader import _spawn_thumbnail_workers, start_offline_sweep
-    _spawn_thumbnail_workers(view, gen)
+    from Imervue.gpu_image_view.tile_loader import (
+        _spawn_thumbnail_workers, pump_thumbnail_workers, start_offline_sweep,
+    )
+    if keep_workers:
+        pump_thumbnail_workers(view)
+    else:
+        _spawn_thumbnail_workers(view, gen)
     start_offline_sweep(view)
     if hasattr(view.main_window, "refresh_list_view"):
         with best_effort("refresh the list view"):
@@ -151,8 +164,13 @@ def _detect_renamed_cached_paths(view: GPUImageView, old_images, new_images) -> 
     signatures = getattr(view, "_tile_file_signatures", {})
     if not isinstance(signatures, dict):
         return {}
-    old_only = [p for p in old_images if p not in new_images]
-    new_only = [p for p in new_images if p not in old_images]
+    new_set, old_set = set(new_images), set(old_images)
+    old_only = [p for p in old_images if p not in new_set]
+    if not old_only:
+        return {}      # nothing left the list, so nothing was renamed: no stat
+    new_only = [p for p in new_images if p not in old_set]
+    if not new_only:
+        return {}
     by_sig: dict[tuple[int, int, str], list[str]] = {}
     for old in old_only:
         sig = signatures.get(old) or file_signature(old)

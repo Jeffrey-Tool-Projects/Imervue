@@ -335,7 +335,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 
 ### 6.9 `Imervue/image/`（純運算核心）
 
-| `thumbnail_disk_cache.py` | 337 | 背景 PNG/legacy 盤點與 provisional bytes；atomic puts、mutation/generation 防 stale resurrection、quota/clear/locked-file accounting |
+| `thumbnail_disk_cache.py` | 347 | 背景 PNG/legacy 盤點與 provisional bytes；atomic puts（PNG 在鎖外編碼，鎖內只寫檔與記帳，worker 不排隊等同一把鎖）、mutation/generation 防 stale resurrection、quota/clear/locked-file accounting |
 
 
 | 模組 | 行數 | 功用 |
@@ -477,7 +477,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `gl_renderer.py` | 349 | 現代 OpenGL 渲染器（VBO + GLSL），shader 編譯失敗時退回 immediate mode |
 | `tile_grid_renderer.py` | 282 | 只依共享 TileViewport 候選列／欄繪製；繪製、載入與淘汰使用同一 frame geometry，失敗也清除 transient geometry；零面積 tile／placeholder 不繪製 |
 | `tile_viewport.py` | 112 | 純運算格線 viewport、列／欄 buffer 候選、cell origin 與 cached 最大尺寸；繪製／載入／淘汰共用 |
-| `thumbnail_queue.py` | 92 | 純運算 bounded 工作計畫；捲動替換 unstarted work、source membership 索引、current workload 進度、filmstrip／retry 與 full-size extent 的 bounded backfill |
+| `thumbnail_queue.py` | 118 | 純運算 bounded 工作計畫；可見格之後再排上下各一個畫面的列（`LOOKAHEAD_SCREENS`，不算進度）、捲動替換 unstarted work、source membership 索引、current workload 進度、filmstrip／retry 與 full-size extent 的 bounded backfill |
 | `deep_zoom_renderer.py` | 281 | Deep-zoom 圖磚 + minimap GL 繪製（minimap 只在圖片超出畫布時顯示，見 `fit_view.minimap_visible`；底片條的 letterbox 帶照畫） |
 | `overlay_painter.py` | 172 | `OverlayPainter`：`QPainter` 疊層的編排——依狀態挑出啟用的疊層並固定繪製順序、逐層隔離例外、合成到離屏 `QImage`；各疊層由下列四個 mixin 提供（文字與幾何在 `osd_text.py`、`hud_geometry.py`，圖磚徽章在 `tile_badges.py`） |
 | `overlay_tiles.py` | 241 | `OverlayTilesMixin`：圖磚牆疊層——檔名標題、徽章、placeholder 轉圈、掃描中整牆轉圈（下方提示可直接點資料夾面板的圖片進 Deep Zoom）、載入失敗／遺失面板，以及 placeholder／淡入的重繪計時器 |
@@ -522,7 +522,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | --- | ---: | --- |
 | `tile_loader.py` | 281 | bounded viewport 縮圖排程：visible buffer／filmstrip／retry 共用 worker slots，重複請求合併、source rewrite 另排一次；持有 `LoadThumbnailWorker`／`QThreadPool` 的唯一使用點與每 4 秒離線掃描計時器；三個 `tile_loader_*` 兄弟模組的公開名稱都由此 re-export（外部與測試 patch 點不變） |
 | `tile_loader_results.py` | 178 | worker 結果落地：generation／O(1) membership 驗證、grid mutex 下寫入 tile cache 與檔案簽章、Missing／失敗狀態與一次性 toast、暫時性錯誤最多兩次退避重試、進度列合併更新、undo／filmstrip 直接插入 |
-| `tile_loader_sync.py` | 171 | 圖片清單變動：增量同步保留暖快取、依簽章遷移改名檔案、焦點與選取帶過；換資料夾重置 view memory、冷快取 reload 與 filmstrip 去重的純函式判斷 |
+| `tile_loader_sync.py` | 189 | 圖片清單變動：增量同步保留暖快取；只新增圖片時（資料夾掃描的後續批次）保留執行中的解碼與同一世代 queue，有圖片離開才取消重排；有離開也有新增時才依簽章遷移改名檔案、焦點與選取帶過；換資料夾重置 view memory、冷快取 reload 與 filmstrip 去重的純函式判斷 |
 | `tile_loader_offline.py` | 135 | 背景 stat 掃描 worker 與結果套用：消失／恢復／被他程式覆寫的檔案切換狀態、重新解碼並批次 refetch 清單列 |
 | `tile_textures.py` | 136 | incoming mipmap 容量前先淘汰畫面外貼圖；使用共享 viewport 候選計算精確 cached visibility，GL 刪除成功才記帳 |
 | `tile_wall_loading.py` | 99 | 牆面 loading 狀態與轉圈幾何（大資料夾/網路磁碟不再空白） |
@@ -545,7 +545,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `image_loader_scan.py` | 199 | 資料夾列舉：`_is_listed`（跳過隱藏檔）、`_scan_images`（依排序一次排完，修改時間／大小取自 scandir 的 stat）、`_scan_images_for_user`（依解析度或拍攝日期這類要逐檔讀標頭的排序（`_HEADER_SORTS`）走 `folder_index` 快取）、`_sort_for_user`、`FolderScanWorker`（分批掃描大資料夾：第一批 32 張先送、之後每批 256；批次只按名稱或免開檔的排序，要讀標頭的排序只在最後一次；未中止就一定送 `finished`，失敗時保留已列出的檔案） |
 | `image_loader_open.py` | 178 | 開啟資料夾／檔案到檢視器：漸進式資料夾掃描（`cancel_folder_scan` 世代號作廢過期批次、`FolderScanUpdates` 合併、結束時 HEIF 提示與 `dispatch_folder_opened`）、`_open_file`（整個資料夾重建清單，直接開啟的隱藏檔仍加進清單，重套瀏覽篩選）、RAW+JPEG 堆疊收合 |
 | `images/folder_scan_updates.py` | 52 | 掃描首批立即呈現，其後 50ms 合併結果，結束採用最終排序；切換路徑與關閉時取消，避免重複重建與過期回呼 |
-| `load_thumbnail_worker.py` | 149 | 單張縮圖解碼 `QRunnable`（點陣圖交給 `image_loader._load_raster_thumbnail`／`_load_raster`，和檢視器同一條解碼：EXIF 轉正、sRGB、16 位元灰階縮放、巨圖一次一張的 `decode_slot`；RAW 取 `raw_loader.develop_raw(thumbnail=True)` 的轉正預覽） |
+| `load_thumbnail_worker.py` | 152 | 單張縮圖解碼 `QRunnable`（點陣圖交給 `image_loader._load_raster_thumbnail`／`_load_raster`，和檢視器同一條解碼：EXIF 轉正、sRGB、16 位元灰階縮放、巨圖一次一張的 `decode_slot`；RAW 取 `raw_loader.develop_raw(thumbnail=True)` 的轉正預覽）；被中止的縮圖解碼已讀檔解碼完就仍寫入磁碟快取，只是不回報 |
 | `image_model.py` | 24 | `ImageModel`：目前資料夾的圖片路徑清單 |
 | `prefetch.py` | 178 | 預載視窗大小與方向追蹤（`NavigationDirectionTracker`） |
 
@@ -1357,7 +1357,7 @@ worker 只讀共享來源與獨立 recipe，於具名 CPU 階段間檢查取消�
 renderer 保留 frame geometry 供 texture admission／loader 共用，`finally` 清除，下一幀重新反映捲動／縮放／DPR。
 `ThumbnailQueue` 不為未拜訪列建立 QRunnable；完成訊號釋出 slot，重新優先載入目前 viewport。
 進度只計目前可見／buffer、仍執行與明確請求；舊世代 completion 不會啟動新世代工作或清除 filmstrip 標記。
-full-resolution mode 為可能跨 cell 的圖片保留 bounded background discovery；普通尺寸只按需載入。
+full-resolution mode 為可能跨 cell 的圖片保留 bounded background discovery；普通尺寸在可見格之後只多排上下各一個畫面的列（不算進度），不會排到整個資料夾。只新增圖片的增量同步不取消執行中的解碼；被捲走而中止的縮圖解碼仍寫入磁碟快取。
 filmstrip／retry 共用 slots 並合併 active 請求；source rewrite 保留一個新版本再解碼。Esc 保留有效 queue／warm cache／原捲動位置。
 
 ### 10.16 預取 RAM admission 與實際 worker 生命週期

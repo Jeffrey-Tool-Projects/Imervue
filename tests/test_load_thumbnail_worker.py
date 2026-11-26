@@ -93,3 +93,29 @@ def test_a_tile_decodes_in_the_giant_decode_slot(tmp_path, monkeypatch, size):
     Image.new("RGB", (30, 20)).save(path)
     mod.LoadThumbnailWorker(str(path), size=size)._bake_fresh(None, "")
     assert asked == [600]
+
+
+def test_a_decode_the_wall_moved_on_from_is_still_cached(tmp_path, monkeypatch):
+    stored = []
+    monkeypatch.setattr(mod.thumbnail_disk_cache, "put",
+                        lambda path, size, data, r_hash: stored.append((path, size)))
+    worker = mod.LoadThumbnailWorker(_portrait(tmp_path), size=16)
+    real_load = worker._load_by_extension
+
+    def load_then_abort(**kwargs):
+        data = real_load(**kwargs)
+        worker.abort()          # the wall scrolled away mid-decode
+        return data
+
+    monkeypatch.setattr(worker, "_load_by_extension", load_then_abort)
+    assert worker._bake_fresh(None, "") is None
+    assert stored == [(worker.path, 16)]
+
+
+def test_an_aborted_full_size_decode_is_neither_cached_nor_returned(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod.thumbnail_disk_cache, "put",
+                        lambda *_a: pytest.fail("full-size tiles are not disk-cached"))
+    worker = mod.LoadThumbnailWorker(_portrait(tmp_path), size=None)
+    worker.abort()
+    assert worker._bake_fresh(None, "") is None
+

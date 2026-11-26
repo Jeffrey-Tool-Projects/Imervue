@@ -1,10 +1,15 @@
 """Pure bounded thumbnail planning; unvisited rows create no decode jobs."""
 from __future__ import annotations
 
+import math
 from collections import OrderedDict
 from collections.abc import Collection, Mapping
 
-from Imervue.gpu_image_view.tile_viewport import TileViewport
+from Imervue.gpu_image_view.tile_viewport import VIEWPORT_BUFFER, TileViewport
+
+# Screens of rows decoded beyond the viewport on each side, after the visible
+# tiles. Bounded so a long folder never queues its whole library.
+LOOKAHEAD_SCREENS = 1
 
 
 class ThumbnailQueue:
@@ -59,14 +64,35 @@ class ThumbnailQueue:
         indices.sort(key=lambda i: (self.images[i] != hover, abs(i - center)))
         paths = list(dict.fromkeys(self.images[i] for i in indices))
         candidates = list(self.urgent)
-        candidates.extend(path for path in paths if path not in self.urgent
-                          and path not in cached and path not in failed and path not in offline)
+
+        def wanted(path: str) -> bool:
+            return (path not in self.urgent and path not in cached
+                    and path not in failed and path not in offline)
+
+        candidates.extend(path for path in paths if wanted(path))
+        if wall:
+            # One screen of rows either side, after everything visible: the
+            # pool keeps working while the user looks, so a scroll finds the
+            # next rows decoded instead of a screen of placeholders.
+            candidates.extend(path for path in self._lookahead(viewport, indices, center)
+                              if wanted(path))
         if wall and full_resolution:
             # Full-size tiles may overlap distant cells; bounded backfill
             # preserves discovering those extents without N queued runnables.
             candidates.extend(self._backfill(cached, failed, offline))
         self.requested = set(paths) | set(self.active) | set(self.urgent) | set(self._background)
         return list(dict.fromkeys(path for path in candidates if path not in self.active))
+
+    def _lookahead(self, viewport: TileViewport, visible: list[int],
+                   center: float) -> list[str]:
+        """Paths in the rows one screen beyond the viewport, nearest first."""
+        if viewport.cell <= 0 or not math.isfinite(viewport.height / viewport.cell):
+            return []
+        rows = max(VIEWPORT_BUFFER, math.ceil(viewport.height / viewport.cell)) * LOOKAHEAD_SCREENS
+        shown = set(visible)
+        ahead = [i for i in viewport.indices(buffer=rows) if i not in shown]
+        ahead.sort(key=lambda i: abs(i - center))
+        return list(dict.fromkeys(self.images[i] for i in ahead))
 
     def _backfill(self, cached, failed, offline) -> list[str]:
         for path in tuple(self._background):
