@@ -143,6 +143,9 @@ def undo_delete(main_gui: GPUImageView):
     if not main_gui.undo_stack:
         return
 
+    if main_gui.undo_stack[-1].get("committing"):
+        # The File menu is sending this delete to the Recycle Bin right now.
+        return
     mode = main_gui.undo_stack[-1].get("mode")
     if mode == "delete_external":
         # A folder / file-tree soft-delete: undo just un-hides it (it was never
@@ -180,6 +183,12 @@ def undo_delete(main_gui: GPUImageView):
     action["restored"] = True
 
     main_gui.update()
+
+
+def pending_delete_actions(undo_stack: list[dict]) -> list[dict]:
+    """The undo actions whose files are soft-deleted and still on disk, oldest first."""
+    return [action for action in undo_stack
+            if action.get("mode") in _PENDING_DELETE_MODES and not action.get("restored")]
 
 
 def pending_deletion_list(undo_stack: list[dict]) -> list[str]:

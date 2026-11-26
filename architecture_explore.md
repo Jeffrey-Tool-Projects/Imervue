@@ -553,7 +553,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 
 | 模組 | 行數 | 功用 |
 | --- | ---: | --- |
-| `delete.py` | 227 | **軟刪除 / 復原**：先隱藏不落地，`commit_pending_deletions()` 在關閉時一次送 `trash_ops`，回傳留在原處的檔案 |
+| `delete.py` | 236 | **軟刪除 / 復原**：先隱藏不落地，`commit_pending_deletions()` 在關閉時一次送 `trash_ops`，回傳留在原處的檔案；`pending_delete_actions()` 給 File 選單的背景提交；標 `committing` 的動作 Undo 不動 |
 | `select.py` | 238 | 上下張切換（含 wrap-around toast）、跳到上/下一個有圖的兄弟資料夾（和資料夾樹同一個順序：自然排序、略過隱藏資料夾）、框選圖磚；`selected_in_view_order` / `selection_or_all` 依瀏覽順序回傳選取（`selected_tiles` 是 set） |
 | `batch_ops.py` | 290 | 批次重新命名（經 `batch_rename.rename_files`）/ 移動 / 複製（經 `file_transfer.transfer_into`，不覆蓋）/ 旋轉（逐檔走 `lossless_rotate`） |
 | `compare_dialog.py` | 235 | 圖片比對：並排(2/4)、疊加(alpha)、差異(gain-boost)、A\|B 分割；`CompareDialog` 建構挑選面板與分頁、選取檢查與 `_warn`，`open_compare_dialog` 入口；仍是檢視與影像運算各名稱的匯入位置 |
@@ -679,7 +679,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `tooltip_text.py` | 160 | 多語言提示範本、既有說明的工作區範圍解析、buddy／表單／網格／巢狀列欄位名稱；不讀輸入值 |
 | `main_window_filter.py` | 254 | `MainWindowFilterMixin`：檢視器上方的篩選列（檔名／副檔名／標籤／日期／評分）、套用並盡量保住目前圖片、狀態存回 |
 | `main_window_missing.py` | 160 | `MainWindowMissingMixin`：遺失檔批次處理（依檔名自動配對、移除、整個根目錄搬移）與每路徑中繼資料的遷移 |
-| `main_window_folders.py` | 307 | `MainWindowFoldersMixin`：輪詢目前資料夾（回到前景時立刻檢查並 refresh 資料夾樹）、重整清單時保住 deep-zoom 圖、資料夾消失時的復原、每資料夾工作階段存取 |
+| `main_window_folders.py` | 363 | `MainWindowFoldersMixin`：輪詢目前資料夾（回到前景時立刻檢查並 refresh 資料夾樹）；變更後由 `FolderRescanWorker` 在 thread pool 重新列出並排序，回到 GUI 執行緒以世代號丟棄過期結果、比對時排除待刪除的軟刪除檔，只有出現新檔才重讀資料夾樹；重整清單時保住 deep-zoom 圖、資料夾消失時的復原、每資料夾工作階段存取 |
 | `main_window_tabs.py` | 219 | `MainWindowTabsMixin`：資料夾分頁的開關、移動、循環、右鍵選單，讓分頁、檔案樹與檢視器指向同一路徑 |
 | `main_window_screens.py` | 194 | `MainWindowScreensMixin`：視窗幾何存回（落在仍存在的螢幕上）、跨不同縮放比例螢幕時重算、移動／縮放後重新適配 |
 | `main_window_views.py` | 153 | `MainWindowViewsMixin`：雙視窗、多螢幕視窗、劇院模式（快照用 `isHidden()`，別的分頁上的 dock 不會被當成隱藏；`_theater_docks_shown()` 讓存版面時劇院藏起的 dock 算顯示；離開劇院模式時請 `deep_zoom_chrome` 重新同步） |
@@ -731,7 +731,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `timeline_view.py` | 362 | 時間軸檢視（年/月/日分組） |
 | `toast.py` | 99 | Toast / snackbar 通知 |
 | `settings_notice.py` | 40 | `warn_if_settings_unreadable(parent)`：啟動時設定檔讀不到，就用非阻塞 `QMessageBox` 說明已改用預設值、副本會存在哪、怎麼取回（主視窗啟動後 800 ms 呼叫） |
-| `trash_failure_notice.py` | 59 | `offer_permanent_delete(parent, paths)`：提交刪除後送不進回收筒、留在原處的檔案，列出來問使用者要不要永久刪除（預設保留；確定就 `delete_outright`，資料夾連內容、檔案連 sidecar 一起刪）；關閉時與 File 選單的立即提交都會呼叫 |
+| `trash_failure_notice.py` | 119 | `offer_permanent_delete(parent, paths)`：提交刪除後送不進回收筒、留在原處的檔案，列出來問使用者要不要永久刪除（預設保留；確定就 `delete_outright`，資料夾連內容、檔案連 sidecar 一起刪）；關閉時與 File 選單的立即提交都會呼叫；`commit_pending_in_background(window)` 讓 File 選單的「提交待刪除」在 `FileDeleteWorker` 執行（不再在選單 slot 跑 `trash_batch`），完成後只移除送出的那些 undo 動作，`finish_pending_commit` 在關閉時等它並結算 |
 | `hover_preview.py` | 192 | 縮圖懸停放大彈窗（預覽依 EXIF 轉正，標題列顯示圖片本身尺寸） |
 | `image_issue_panel.py` | 142 | 圖片載入問題面板（dock） |
 | `multi_monitor_window.py` | 295 | 多螢幕鏡像視窗 |

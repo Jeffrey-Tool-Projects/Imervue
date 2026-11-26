@@ -10,9 +10,10 @@ saving / restoring each folder's session (view mode, current image).
 from __future__ import annotations
 
 import contextlib
+import logging
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, Signal
 
 from Imervue.system.qt_timers import call_later
 from Imervue.image.browser_state import detect_renamed_paths, filter_paths, migrate_view_path_state
@@ -24,6 +25,38 @@ from Imervue.user_settings.user_setting_dict import write_user_setting, user_set
 # Poll interval while waiting for the async folder scan to surface the image a
 # startup deep-zoom restore is targeting (bounded by the retry count).
 _DEEP_ZOOM_RESTORE_RETRY_MS = 50
+
+logger = logging.getLogger("Imervue.folders")
+
+
+class _FolderRescanSignals(QObject):
+    done = Signal(str, object, int)   # folder, sorted paths or None, generation
+
+
+class FolderRescanWorker(QRunnable):
+    """List and sort the open folder off the GUI thread after it changed on disk.
+
+    A header sort (resolution, date taken) opens every file, and even a name
+    sort lists a large folder for a noticeable time, so neither may run in the
+    timer slot that the folder poll fires after a delete.
+    """
+
+    def __init__(self, folder: str, generation: int, sort_by: str, ascending: bool):
+        super().__init__()
+        self.folder = folder
+        self.generation = generation
+        self.sort_by = sort_by
+        self.ascending = ascending
+        self.signals = _FolderRescanSignals()
+
+    def run(self) -> None:
+        from Imervue.gpu_image_view.images.image_loader_scan import _scan_images
+        images = None
+        try:
+            images = _scan_images(self.folder, sort_by=self.sort_by, ascending=self.ascending)
+        except Exception:  # a worker must always report; None keeps the shown list
+            logger.exception("Rescanning %s failed", self.folder)
+        self.signals.done.emit(self.folder, images, self.generation)
 
 
 class MainWindowFoldersMixin:
@@ -47,23 +80,46 @@ class MainWindowFoldersMixin:
         self._folder_refresh_timer.start(1200 if self._folder_change_events >= 8 else 500)
 
     def _do_folder_refresh(self):
-        """去抖動後重新掃描資料夾並更新 tile grid"""
+        """去抖動後在背景重新掃描資料夾，結果回到 GUI 執行緒再更新 tile grid"""
         self._folder_change_events = 0
-        viewer = self.viewer
         folder = self._current_view_folder()
         if not folder:
             return
         if not Path(folder).is_dir():
             self._handle_active_folder_missing(folder)
             return
+        self._folder_rescan_generation = getattr(self, "_folder_rescan_generation", 0) + 1
+        worker = FolderRescanWorker(folder, self._folder_rescan_generation,
+                                    user_setting_dict.get("sort_by", "name"),
+                                    user_setting_dict.get("sort_ascending", True))
+        worker.signals.done.connect(self._apply_folder_rescan,
+                                    Qt.ConnectionType.QueuedConnection)
+        self._folder_rescan_worker = worker
+        QThreadPool.globalInstance().start(worker)
 
-        from Imervue.gpu_image_view.images.image_loader import _scan_images_for_user
-        new_images = _scan_images_for_user(folder)
-        self._image_metadata_index.prime(new_images, limit=512)
-
+    def _apply_folder_rescan(self, folder: str, scanned: list | None, generation: int) -> None:
+        """Bring the grid up to date with a finished rescan, if it still applies."""
+        if generation != getattr(self, "_folder_rescan_generation", None):
+            return
+        self._folder_rescan_worker = None
+        if scanned is None or folder != self._current_view_folder():
+            return
+        from Imervue.gpu_image_view.actions.delete import pending_deleted_paths
+        viewer = self.viewer
+        # Soft-deleted files stay on disk until the shutdown commit, while the
+        # stored list already leaves them out: compare without them, or every
+        # change in the folder looks like a new listing and rebuilds everything.
+        pending = pending_deleted_paths(getattr(viewer, "undo_stack", []))
+        new_images = [p for p in scanned if p not in pending] if pending else list(scanned)
         current_full = list(getattr(viewer, "_unfiltered_images", None) or viewer.model.images)
-        if new_images != current_full:
-            self._apply_refreshed_image_list(new_images)
+        if new_images == current_full:
+            return
+        appeared = not set(new_images) <= set(current_full)
+        self._image_metadata_index.prime(new_images, limit=512)
+        self._apply_refreshed_image_list(new_images)
+        if appeared:
+            # The tree's own model drops removed rows by itself; re-reading it
+            # from disk is only needed for files it has not seen yet.
             self.tree.refresh()
 
     def _current_view_folder(self) -> str:
