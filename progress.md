@@ -6,9 +6,6 @@ Cross-repo and workspace items live in `D:\Codes\progress.md` (relevant here: S-
 
 ## Open
 
-- [UNVERIFIED] Install Rigora from a released executable (U-20261126-01): only the `pip --no-deps --target` step and the dialog wiring were exercised, not a Nuitka build.
-  Next: on a clean Windows machine, open Puppet in the released EXE, press Install Rigora, confirm both tabs build in place, load File > Examples > Imeru, restart and confirm Rigora still loads from `lib/site-packages`.
-
 - [BLOCKED] Codacy file-complexity threshold: every runtime file that scored 80 or more is split (PR #111, fix/main-quality). Hosted Codacy still flags files above the current threshold of 20; at 60 about 50 files would remain, at 50 about 88.
   Next: the owner raises the threshold in the Codacy repository quality settings (the environment Codacy token returns HTTP 401 here), then decide whether the 60-80 band needs another pass. canvas_render.py remains at 68.
 

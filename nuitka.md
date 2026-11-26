@@ -594,7 +594,7 @@ Nuitka standalone 啟動後 import 這類含 C extension 的套件通常沒問�
 21. **浮水印疊加**：開啟浮水印對話框，套用文字 / 圖片浮水印於輸出——驗證 PIL 的 `ImageDraw` / `ImageFont` 在 frozen 下能載入字型資源
 22. **Export presets**：用 Web 1600px / Print 300dpi / Instagram 1080×1080 三種預設匯出——驗證 PIL 的 resample / DPI metadata 寫入正常
 23. **XMP sidecar**：載入含 其他相容 XMP 的照片管理工具 產生的 `.xmp` 圖片，確認星等 / 色彩標籤 / 開發參數被讀取；編輯後存檔再用 其他相容 XMP 的照片管理工具 開啟，確認 sidecar 能被對方讀回——驗證 `defusedxml` 被 Nuitka 靜態分析自動收進產物
-24. **選用 Rigora 分頁**：未包含 Rigora 的產物應顯示缺少套件提示與「安裝 Rigora」按鈕，其他分頁正常；按下後應能下載安裝，完成後 Puppet 與 Desktop Pet 分頁直接開啟，重開程式後仍可用。包含 Rigora 的產物，切到 Puppet → **File > Examples > Imeru**，確認套件內的角色置中載入，再播放 Motions dock 的動作。驗證 `rigora.*`、`rigora/resources/` 與 frozen `QOpenGLWidget` 路徑，並測試 Desktop Pet 的顯示、隱藏及關閉。
+24. **選用 Rigora 分頁**：未包含 Rigora 的產物應顯示缺少套件提示與「安裝 Rigora」按鈕，其他分頁正常；按下後應能下載安裝，完成後 Puppet 與 Desktop Pet 分頁直接開啟，重開程式後仍可用。無頭驗證可用 `scripts/rigora_frozen_probe.py`：以未含 Rigora 的環境凍結它（帶 `Imervue` 與 `PySide6` 全部子模組、`wave`），執行後輸出 JSON，逐項列出按鈕、安裝、`lib/site-packages` 的 Rigora、仍用產物內的 PySide6 與兩個工作區建置結果。包含 Rigora 的產物，切到 Puppet → **File > Examples > Imeru**，確認套件內的角色置中載入，再播放 Motions dock 的動作。驗證 `rigora.*`、`rigora/resources/` 與 frozen `QOpenGLWidget` 路徑，並測試 Desktop Pet 的顯示、隱藏及關閉。
 25. **Puppet 即時輸入（產物已包含 Rigora 時）**：開啟 Drag-Track（滑鼠拖動頭部）、Auto-Blink（自動眨眼）；裝有 `sounddevice` 時開 Mic Lip-Sync、裝有 OpenCV + MediaPipe 時開 Webcam Tracking——驗證這幾條選用依賴在 frozen 環境的 `try / except ImportError` fallback 正確（沒裝時不該 crash，只是該選項不可勾選）
 26. **Cubism `.moc3` 轉換器（產物已包含 Rigora，需自備 SDK）**：把 Live2D Cubism Native SDK 解壓到 `<app_dir>/sdk/` 或設 `CUBISM_CORE_DLL` 環境變數 → File > Convert `.moc3`… → 任意 Cubism 模型 → 確認產出的 `.puppet` 能播放。驗證 ctypes 對 `Live2DCubismCore.dll` 的動態載入在 frozen 環境下走得通；沒裝 SDK 時這個 menu 項應該 disabled / 提示
 
