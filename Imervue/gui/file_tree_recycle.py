@@ -15,12 +15,15 @@ def refresh_pending_hidden(self) -> None:
     model = self.model()
     if model is None:
         return
+    changed = set(pending) != self._hidden_paths
     for path in self._hidden_paths - pending:
         self._set_row_hidden(model, path, hidden=False)
     for path in pending:
         self._set_row_hidden(model, path, hidden=True)
     self._hidden_paths = set(pending)
-    if self._recursive_search is not None:
+    # Search results only lose entries when the pending set changes; checking
+    # every result against every hidden folder on each reload was the cost.
+    if changed and self._recursive_search is not None:
         self._recursive_search.exclude_hidden()
 
 

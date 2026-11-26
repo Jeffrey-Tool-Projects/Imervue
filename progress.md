@@ -12,9 +12,6 @@ Cross-repo and workspace items live in `D:\Codes\progress.md` (relevant here: S-
 - [UNVERIFIED] Thumbnail wall fill time after U-20261126-04 is not measured; the remaining GUI-thread costs on that path are one `os.stat` per landed tile (`tile_loader_results.py`, `file_signature`), up to 512 stats in `_image_metadata_index.prime` per folder click, a synchronous `write_user_setting()` per folder click, and texture uploads with `glGenerateMipmap` inside paint with no per-frame cap.
   Next: time a cold (cache cleared) and a warm open of a folder of about 2,000 JPEGs on a real machine, before and after; then send the signature with the worker result, move `prime` into the scan worker, debounce the session write and cap uploads per frame.
 
-- Delete costs still on the GUI thread after U-20261126-02: `offer_permanent_delete` runs `delete_outright` (rmtree/unlink) after its dialog; every file-tree `directoryLoaded` runs `refresh_pending_hidden` plus a recursive `apply_search_filter` and `exclude_hidden` (O(rows x hidden folders)); a list-view delete resets the whole list model with an `exists()` per row; culling's reject rebuilds the whole wall.
-  Next: move `delete_outright` into a `_BatchFileWorker`, coalesce the tree's `directoryLoaded` handlers into one zero-delay timer, remove deleted list rows with `beginRemoveRows`, and confirm on a real machine with a few thousand files that Delete on the wall, in the tree and from the File menu never stalls.
-
 - [BLOCKED] Codacy file-complexity threshold: every runtime file that scored 80 or more is split (PR #111, fix/main-quality). Hosted Codacy still flags files above the current threshold of 20; at 60 about 50 files would remain, at 50 about 88.
   Next: the owner raises the threshold in the Codacy repository quality settings (the environment Codacy token returns HTTP 401 here), then decide whether the 60-80 band needs another pass. canvas_render.py remains at 68.
 

@@ -15,6 +15,7 @@ class _FakeDeleteWorker(QObject):
     """Stands in for FileDeleteWorker: no thread, no real Recycle Bin."""
 
     finished_with = Signal(list, list)
+    finished = Signal()
     created: list = []
 
     def __init__(self, paths, parent=None):
@@ -42,8 +43,11 @@ def window(monkeypatch):
     _FakeDeleteWorker.created = []
     offered = []
     monkeypatch.setattr(trash_ops, "FileDeleteWorker", _FakeDeleteWorker)
-    monkeypatch.setattr(notice, "offer_permanent_delete",
-                        lambda _parent, paths: offered.append(list(paths)) or [])
+    def offer(_parent, paths, on_done):
+        offered.append(list(paths))
+        on_done([])
+
+    monkeypatch.setattr(notice, "offer_permanent_delete_async", offer)
     win = SimpleNamespace(viewer=SimpleNamespace(undo_stack=[]), offered=offered)
     return win
 

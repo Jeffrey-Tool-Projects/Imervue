@@ -238,8 +238,10 @@ class CullingDialog(WorkerHostMixin, QDialog):
         gone_set = set(gone)
         viewer = self._ui.viewer
         viewer._unfiltered_images = None
-        viewer.clear_tile_grid()
-        viewer.load_tile_grid_async([p for p in base if p not in gone_set])
+        # Drop the deleted tiles and keep the rest: clearing the wall threw
+        # away every decoded thumbnail and texture and decoded them all again.
+        from Imervue.gpu_image_view.tile_loader import sync_tile_grid_incremental
+        sync_tile_grid_incremental(viewer, [p for p in base if p not in gone_set])
         self.accept()
 
 

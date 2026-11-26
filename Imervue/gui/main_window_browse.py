@@ -78,7 +78,8 @@ class MainWindowBrowseMixin:
         self.viewer.selected_tiles.clear()
         self.viewer.selected_tiles.update(paths)
         delete.delete_selected_tiles(self.viewer)
-        self.refresh_list_view()
+        if self._browse_mode == "list":
+            self.image_list_view.remove_paths(paths)
 
     def mark_list_selection(self, action: str, paths: list[str]) -> None:
         """Rate, favourite, cull-flag or colour-label the list's selected rows, as on the wall."""

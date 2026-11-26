@@ -52,10 +52,15 @@ def apply_search_filter(self) -> None:
         return
     root = self.rootIndex()
     if not self._search_text:
-        self._set_subtree_hidden(root, hidden=False)
+        # Only a search hides rows wholesale; with none active, walking the
+        # whole loaded tree to un-hide it again is wasted on every refresh.
+        if getattr(self, "_search_filtered", True):
+            self._set_subtree_hidden(root, hidden=False)
+            self._search_filtered = False
         self.refresh_pending_hidden()
         return
     self._filter_children(root)
+    self._search_filtered = True
     self.refresh_pending_hidden()
 
 

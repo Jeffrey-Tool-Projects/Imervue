@@ -259,7 +259,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | `wallpaper.py` | 161 | `set_desktop_wallpaper(path)`：設為桌布（Windows `SystemParametersInfoW`、macOS 以 argv 傳路徑給 `osascript`、GNOME `gsettings` 同時設亮／暗色）；JPEG／PNG／BMP 以外的格式與帶 EXIF 方向的照片先經 `wallpaper_file` 存成檢視器所見的 JPEG 副本（轉正、sRGB、透明處鋪黑，放在 `%LOCALAPPDATA%/Imervue/wallpaper`，檔名隨來源的大小與修改時間變、只留最新一份；做不出副本時交原檔），因為 Windows 拿到解不開的檔案會回報成功卻把桌面變黑；失敗只記錄；右鍵選單在 `QThreadPool` 裡呼叫 |
 | `local_origin.py` | 37 | `is_allowed_origin(origin)`：桌寵 webhook 與 puppet VTS API 共用；拒絕遠端網頁、opaque `null`、無法解析的主機／連接埠與空白字元；保留無 Origin 的原生客戶端及明確的本機來源 |
 | `local_llm.py` | 46 | 對本機 LLM 伺服器（預設 Ollama）送 JSON：`validate_base_url`（loopback 的 http 或任何 https）、`post_json`；圖片說明與桌寵對話共用，不依賴 Qt |
-| `trash_ops.py` | 327 | **背景批次刪除**：`send2trash` 單次呼叫成本 ~0.27s，因此所有刪除必須走這裡，禁止 per-file 迴圈；刪除後各檔的 sidecar 同路處理（不計進結果）；`recycle_bin_holds`：Windows 上只有固定磁碟才交給 shell（記憶卡、USB 隨身碟、網路磁碟會被直接永久刪除），其餘留在原處算失敗；`purge_batch` 裡這類「送回收筒」的項目改為直接刪除（使用者已確認永久刪除）；`delete_outright(paths)`：確認後直接刪，資料夾連內容一起（`_unlink_chunk` 仍只刪檔案，culling 不會清空資料夾） |
+| `trash_ops.py` | 339 | **背景批次刪除**：`send2trash` 單次呼叫成本 ~0.27s，因此所有刪除必須走這裡，禁止 per-file 迴圈；刪除後各檔的 sidecar 同路處理（不計進結果）；`recycle_bin_holds`：Windows 上只有固定磁碟才交給 shell（記憶卡、USB 隨身碟、網路磁碟會被直接永久刪除），其餘留在原處算失敗；`purge_batch` 裡這類「送回收筒」的項目改為直接刪除（使用者已確認永久刪除）；`delete_outright(paths)`：確認後直接刪，資料夾連內容一起（`_unlink_chunk` 仍只刪檔案，culling 不會清空資料夾）；`PermanentDeleteWorker`（`delete_outright` 的背景版） |
 | `file_transfer.py` | 308 | `transfer_into(sources, dest_dir, *, move)`：搬移／複製進資料夾一律走這裡；以 `batch_move_planner` 規劃不重複的檔名（依檔案系統大小寫規則），以 Windows rename／硬連結發布或 exclusive-create fallback 拒絕已存在目標；跨磁碟與資料夾搬移僅在完整複製成功後刪來源，失敗保留來源與可能的部分目標，不清除其他 writer 的內容（Move/Copy 對話框、雙窗格、staging tray 共用）；`carry_along(pairs, *, move)`：檔案搬移／改名／複製後帶走 sidecar（`IMG.xmp`、`IMG.JPG.xmp`、`IMG.JPG.annotations.json`；RAW+JPEG 共用的 `IMG.xmp` 改用複製），搬移時再呼叫 `follow_saved_data`；`carry_sidecars`：只搬 sidecar，worker 執行緒可用；`follow_saved_data(files, folders, *, keep_existing)`：設定（`path_metadata`）與圖庫（`image_index.move_paths`）的每路徑資料改指新路徑，資料夾展開成其下每個檔；`sidecars_of(path)`：只屬於這個檔的 sidecar（刪除時一起帶走）；`is_same_file(a, b)`：兩個路徑是否指同一個檔（Windows 只改大小寫的改名不算衝突） |
 | `batch_rename.py` | 157 | `rename_files(pairs)`：一批改名，目標可以是批次內另一個檔目前的名稱（重新編號、互換）：依相依順序改，循環先借同資料夾的暫時名稱，失敗時放回原名；不覆蓋批次外的檔；sidecar 隨每次改名走，存的資料（評分、標籤、備註…）整批一次 `follow_saved_data`（Batch Rename、Token Batch Rename 共用） |
 | `atomic_write.py` | 36 | `replace_atomically(path, write)`：寫到 `.tmp` 兄弟檔再 `os.replace`，失敗時原檔完整、暫存檔刪除；所有覆寫使用者既有檔的存檔（EXIF 改寫、旋轉、套用裁切、PSD／puppet／paint 文件、`save_image` 的匯出與轉檔、Paint 匯出預設）都走它；`write_text_atomically(path, text)` 是文字版（XMP／註解 sidecar、素材庫索引、工作階段檔、桌寵腳本、註解專案） |
@@ -702,16 +702,16 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `file_tree_paths.py` | 63 | 保序去重、刪除路徑分類與不覆蓋既有檔案的複本命名 |
 | `file_tree_textures.py` | 46 | 單次 GL context 切換釋放紋理並同步 VRAM 計量 |
 | `file_tree_viewer_delete.py` | 68 | 精確索引移除的共用 undo、cache、導覽與插件通知；保留單筆和批次重複項語意 |
-| `file_tree_view.py` | 232 | 薄 Qt 視圖 `_FileTreeView`（混入 `FileTreeSortMixin`）：`set_root_path` 統一切換根目錄（先存舊狀態、協調排序／搜尋並非同步還原）、`FileTreeState`／`FileTreeSearch` 接線、縮圖尺寸、按鍵與滾輪事件；保留選取、隱藏列及垃圾桶工作者狀態，檔案操作以明確方法綁定到各 `file_tree_*` 模組 |
+| `file_tree_view.py` | 240 | 薄 Qt 視圖 `_FileTreeView`（混入 `FileTreeSortMixin`）：`set_root_path` 統一切換根目錄（先存舊狀態、協調排序／搜尋並非同步還原）、`FileTreeState`／`FileTreeSearch` 接線、縮圖尺寸、按鍵與滾輪事件；保留選取、隱藏列及垃圾桶工作者狀態，檔案操作以明確方法綁定到各 `file_tree_*` 模組；`directoryLoaded` 一連串只排一次 0 ms 的同步（`_loaded_sync_timer`），不是每個資料夾各走一次整棵樹 |
 | `file_tree_sort_controls.py` | 197 | `FileTreeSortMixin` 與排序 widget：上方完整顯示排序欄位、語意方向、全域預設與資料夾覆寫範圍、資料夾優先與重設；右鍵排序選單共用有效設定 |
 | `file_tree_sort.py` | 179 | `FileTreeSortProxy`：名稱、修改／建立時間、大小、類型（`type`）排序鍵與可切換資料夾優先；ToolTipRole 顯示實際建立／修改時間和檔案大小 |
 | `file_tree_search.py` | 305 | 可取消背景遞迴搜尋面板與 `_Scan` worker；檔名／相對路徑結果、收合、獨立定位（展開祖先）與直接預覽訊號；保留查詢、選取與捲動位置，排除過期世代與隱藏列 |
 | `file_tree_search_scan.py` | 67 | 純檔案系統走訪（無 Qt）：串流回報檔名符合項目，跳過隱藏檔與 reparse point（目錄連結），可取消、分批送出 |
 | `file_tree_state.py` | 154 | `FileTreeState`：以路徑保存展開、多選、目前項目及捲動位置；等待 directoryLoaded 後還原，重新整理時重設載入狀態 |
 | `file_tree_preferences.py` | 67 | `TreeSortSettings`：驗證全域設定與正規化根路徑的資料夾覆寫，統一序列化與持久化 |
-| `file_tree_filter.py` | 89 | 重新載入目錄（`set_root_path(..., refresh=True)` 重新 stat）與依名稱、符合項目的祖先篩選已載入列；遞迴搜尋開啟時查詢交給 `FileTreeSearch`、已載入列篩選清空 |
-| `file_tree_recycle.py` | 52 | 資料夾軟刪除 undo 記錄與還原前後的隱藏列同步；隱藏列變動後呼叫搜尋的 `exclude_hidden`，結果不列待刪資料夾 |
-| `file_tree_trash.py` | 115 | 垃圾桶請求佇列、工作者完成結果與關閉時排空；`shutdown` 先保存樹狀態並停止遞迴搜尋 |
+| `file_tree_filter.py` | 94 | 重新載入目錄（`set_root_path(..., refresh=True)` 重新 stat）與依名稱、符合項目的祖先篩選已載入列；遞迴搜尋開啟時查詢交給 `FileTreeSearch`、已載入列篩選清空；沒有搜尋時只在先前搜尋藏過列（`_search_filtered`）才走整棵樹取消隱藏 |
+| `file_tree_recycle.py` | 55 | 資料夾軟刪除 undo 記錄與還原前後的隱藏列同步；隱藏列變動後呼叫搜尋的 `exclude_hidden`，結果不列待刪資料夾；待刪除集合有變才讓遞迴搜尋結果 `exclude_hidden` |
+| `file_tree_trash.py` | 135 | 垃圾桶請求佇列、工作者完成結果與關閉時排空；`shutdown` 先保存樹狀態並停止遞迴搜尋；回收筒拒收的檔案經 `offer_permanent_delete_async` 在 worker 永久刪除，該 worker 算在 `_trash_workers` 裡（佇列等它、關閉時 join）；worker 在 `QThread.finished` 後才 `deleteLater` |
 | `folder_thumbnail_model.py` | 179 | `QFileSystemModel` 子類，用資料夾第一張圖當樹狀圖示（`folder_preview_path` 經串流 `first_image_path`：自然排序首張、兩個預覽 worker、略過系統自訂圖示查詢、跳過 `._` 等隱藏檔，和縮圖牆的第一張一致；取代不穩定的 Windows shell 縮圖） |
 | `image_list_cells.py` | 72 | Map Qt item roles to row presentation. |
 | `image_list_context.py` | 63 | Build list context actions and relocate missing images. |
@@ -719,11 +719,11 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `image_list_edit.py` | 56 | Apply list edit shortcuts while retaining selection after rebuilds. |
 | `image_list_fetch.py` | 85 | Track lazy reads, stale results, and bounded retries. |
 | `image_list_keyboard.py` | 33 | Route list activation and copy shortcuts after edit actions. |
-| `image_list_model.py` | 85 | Qt table identity, reset operations, and image-path access. |
+| `image_list_model.py` | 114 | Qt table identity, reset operations, and image-path access.；`remove_paths` 以 `beginRemoveRows` 由下往上移除連續區段，不重設模型 |
 | `image_list_rows.py` | 60 | Cached image metadata and GUI-thread thumbnail conversion. |
 | `image_list_sort.py` | 67 | Sort cached rows and preserve persistent selection identity. |
 | `image_list_values.py` | 69 | Rating values, star geometry, and human-readable file sizes. |
-| `image_list_view.py` | 199 | Image-list Qt view and compatibility exports. |
+| `image_list_view.py` | 203 | Image-list Qt view and compatibility exports.；`remove_paths` 給刪除用：不重建、不重排 |
 | `image_list_worker.py` | 68 | Decode detached thumbnail images away from the GUI thread. |
 | `dual_image_view.py` | 199 | 雙圖 Split / Manga / RTL；可選 max_edge 限制來源預覽，原本完整尺寸 constructor 保持相容 |
 | `exif_sidebar.py` | 431 | 圖片資訊面板（EXIF、星等元件、備註），由主視窗放進「Image Info」dock；`set_active()` 跟著 dock 的顯示狀態開關 EXIF 讀取；尺寸經 `scaled_px` 跟著 UI 縮放，顏色取自主題調色盤 |
@@ -731,7 +731,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `timeline_view.py` | 362 | 時間軸檢視（年/月/日分組） |
 | `toast.py` | 99 | Toast / snackbar 通知 |
 | `settings_notice.py` | 40 | `warn_if_settings_unreadable(parent)`：啟動時設定檔讀不到，就用非阻塞 `QMessageBox` 說明已改用預設值、副本會存在哪、怎麼取回（主視窗啟動後 800 ms 呼叫） |
-| `trash_failure_notice.py` | 119 | `offer_permanent_delete(parent, paths)`：提交刪除後送不進回收筒、留在原處的檔案，列出來問使用者要不要永久刪除（預設保留；確定就 `delete_outright`，資料夾連內容、檔案連 sidecar 一起刪）；關閉時與 File 選單的立即提交都會呼叫；`commit_pending_in_background(window)` 讓 File 選單的「提交待刪除」在 `FileDeleteWorker` 執行（不再在選單 slot 跑 `trash_batch`），完成後只移除送出的那些 undo 動作，`finish_pending_commit` 在關閉時等它並結算 |
+| `trash_failure_notice.py` | 151 | `offer_permanent_delete(parent, paths)`：提交刪除後送不進回收筒、留在原處的檔案，列出來問使用者要不要永久刪除（預設保留；確定就 `delete_outright`，資料夾連內容、檔案連 sidecar 一起刪）；關閉時與 File 選單的立即提交都會呼叫；`commit_pending_in_background(window)` 讓 File 選單的「提交待刪除」在 `FileDeleteWorker` 執行（不再在選單 slot 跑 `trash_batch`），完成後只移除送出的那些 undo 動作，`finish_pending_commit` 在關閉時等它並結算；`offer_permanent_delete_async(parent, paths, on_done)`：問完在 `PermanentDeleteWorker` 刪，`on_done` 在 GUI 執行緒拿到結果；同步版只留給視窗關閉 |
 | `hover_preview.py` | 192 | 縮圖懸停放大彈窗（預覽依 EXIF 轉正，標題列顯示圖片本身尺寸） |
 | `image_issue_panel.py` | 142 | 圖片載入問題面板（dock） |
 | `multi_monitor_window.py` | 295 | 多螢幕鏡像視窗 |
@@ -787,7 +787,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 `optimize_dialog.py`(112) 目標檔案大小 · `gif_video_dialog.py`(430) 多張圖做 GIF／MP4（預設輸出經 `free_names` 挑沒被占用的 `output.gif`；既有檔案經 `dialog_rows.may_replace` 詢問） · `contact_sheet_dialog.py`(239) Layout 預設選單（選了填入格線，手動改就回到 Custom） ·
 `web_gallery_dialog.py`(160) · `slideshow_mp4_dialog.py`(194) · `image_organizer_dialog.py`(221) 圖片整理對話框：預覽計畫樹、開始／進度／結果、搬移後經 `follow_saved_data` 在 GUI 執行緒重新對應評分等資料（re-export 規劃與 worker 的名稱） · `image_organizer_plan.py`(106) 整理規劃純邏輯（不依賴 Qt）：掃描資料夾、依日期／解析度／類型／大小／固定張數分組（`plan_organization`） · `image_organizer_worker.py`(109) `_OrganizerWorker`（QThread：逐組複製或搬移、同名加 `_N`、帶上 sidecar，`result_ready` 一定發出） · `image_organizer_ui.py`(169) `OrganizerLayoutMixin`：來源、規則、各規則選項、輸出、複製／搬移、預覽樹與按鈕列 ·
 `duplicate_detection_dialog.py`(310) 重複圖片對話框：檔案雜湊 + pHash 掃描、結果樹與縮圖（re-export 掃描與分群名稱） · `duplicate_detection_scan.py`(148) `_ScanWorker`（QThread：MD5 精確比對或 dHash 感知比對，逐檔發出進度與重複群組） · `duplicate_detection_clusters.py`(42) 重複分群純邏輯（不依賴 Qt）：union-find 依漢明距離合併、依掃描順序輸出群組 · `duplicate_detection_actions.py`(122) `DuplicateActionsMixin`：「選取多餘」（保留最佳）與批次刪除（`FileDeleteWorker`、資源回收筒拒收時詢問永久刪除） · `image_sanitize_dialog.py`(390) 淨化重繪對話框（剝除所有隱藏資料；re-export 核心與 worker 的名稱） · `image_sanitize_core.py`(314) 淨化純邏輯（不依賴 Qt）：從原始像素重建、LSB 擾亂、可選放大（`UpscaleSpec`）、日期 + 亂數命名、`SanitizeSettings` · `image_sanitize_worker.py`(130) `_SanitizeWorker`（QThread：先備妥傳統縮放或 ONNX session，再逐檔淨化，遞迴時鏡像子資料夾）·
-`exif_strip_dialog.py`(309) EXIF 批次清除（覆寫原檔走 `replace_atomically`；另存的 `_clean` 副本經 `free_names` 挑名） · `token_rename_dialog.py`(125) · `culling_dialog.py`(247) 挑片 ·
+`exif_strip_dialog.py`(309) EXIF 批次清除（覆寫原檔走 `replace_atomically`；另存的 `_clean` 副本經 `free_names` 挑名） · `token_rename_dialog.py`(125) · `culling_dialog.py`(250) 挑片（刪除 reject 後以 `sync_tile_grid_incremental` 只拿掉被刪的格子） ·
 `ai_upscale_dialog.py`(303) AI 放大對話框外殼：來源／模型／倍率／覆寫／輸出各列與 `open_ai_upscale*` 入口；re-export 引擎與 worker 的名稱 · `ai_upscale_dialog_run.py`(121) `UpscaleRunMixin` 執行流程：檢查選項、AI 模型先經 `ensure_dependencies`、啟動 worker 並向 `job_registry` 登記重試 factory、結束時重設控制項、toast、覆寫後重載檢視器 · `ai_upscale_engine.py`(216) 純邏輯（不 import Qt）：Real-ESRGAN 模型登錄（固定 HuggingFace revision）、傳統重取樣方法、資料夾掃描、模型下載、ONNX 分塊推論與 provider 順序 · `ai_upscale_worker.py`(155) `_UpscaleWorker` QThread：逐張放大、記錄 `JobState`、模型下載或 session 建立失敗也一定發出 `result_ready`
 
 #### 相片庫 / 中繼資料 / 搜尋

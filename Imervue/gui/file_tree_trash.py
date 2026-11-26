@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from Imervue.gui.trash_failure_notice import offer_permanent_delete
+from Imervue.gui.trash_failure_notice import offer_permanent_delete_async
 from Imervue.gui.file_tree_feedback import toast
 from Imervue.multi_language.language_wrapper import language_wrapper
 
@@ -48,6 +48,9 @@ def _pump_trash_queue(self) -> None:
         lambda done, failed, w=worker: self._on_trash_finished(w, batch, done, failed),
     )
     self._trash_workers.add(worker)
+    # Deleted once the thread has ended: the result slot runs while run() is
+    # still returning, and destroying a running QThread aborts the process.
+    worker.finished.connect(worker.deleteLater)
     worker.start()
 
 
@@ -55,10 +58,27 @@ def _on_trash_finished(
     self, worker, batch: list[_TrashRequest], done: list[str], failed: list[str]
 ) -> None:
     self._trash_workers.discard(worker)
-    worker.deleteLater()
     # What the Recycle Bin could not take (a memory card, a network share)
-    # goes for good only if the user says so.
-    landed = set(done) | set(offer_permanent_delete(self, failed))
+    # goes for good only if the user says so, on a worker: removing a folder
+    # from such a drive can take seconds. Tracked with the trash workers so
+    # the queue waits for it and shutdown joins it.
+    holder: list = []
+
+    def removed(gone: list[str]) -> None:
+        if holder:
+            self._trash_workers.discard(holder[0])
+        _settle_trash_batch(self, batch, done, failed, gone)
+
+    permanent = offer_permanent_delete_async(self, failed, removed)
+    if permanent is not None:
+        holder.append(permanent)
+        self._trash_workers.add(permanent)
+
+
+def _settle_trash_batch(self, batch: list[_TrashRequest], done: list[str],
+                        failed: list[str], removed: list[str]) -> None:
+    """Report each request's landed paths, warn about the rest, start the next batch."""
+    landed = set(done) | set(removed)
     for request in batch:
         request.on_done([p for p in request.paths if p in landed])
     still_there = [path for path in failed if path not in landed]

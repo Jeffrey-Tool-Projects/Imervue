@@ -171,9 +171,11 @@ def test_reload_and_restore_preserve_search_and_pending_folder_visibility(qapp, 
     tree.set_search_text("target")
     assert tree.isRowHidden(0, QModelIndex())
     model.directoryLoaded.emit(folder)
+    qapp.processEvents()          # the reload pass runs once the burst is over
     assert tree.isRowHidden(0, QModelIndex())
     action["restored"] = True
     model.directoryLoaded.emit(folder)
+    qapp.processEvents()
     assert not tree.isRowHidden(0, QModelIndex())
     tree.set_search_text("absent")
     assert tree.isRowHidden(0, QModelIndex())
@@ -227,3 +229,36 @@ def test_filesystem_failures_preserve_notifications_and_source(
     assert source.read_bytes() == b"image"
     assert messages == ([expected] if has_toast else [])
     assert refreshes == []
+
+
+def test_a_burst_of_loaded_directories_runs_one_pass(qapp, monkeypatch):
+    class LoadedModel(_FakeFsModel):
+        directoryLoaded = Signal(str)
+
+    tree = _FileTreeView(SimpleNamespace(viewer=SimpleNamespace(undo_stack=[])))
+    tree.setModel(LoadedModel())
+    passes = []
+    monkeypatch.setattr(_FileTreeView, "apply_search_filter", lambda self: passes.append(1))
+    tree._loaded_sync_timer.timeout.disconnect()
+    tree._loaded_sync_timer.timeout.connect(tree.apply_search_filter)
+    for index in range(40):
+        tree.model().directoryLoaded.emit(f"/folder/{index}")
+    assert passes == []
+    qapp.processEvents()
+    assert passes == [1]
+
+
+def test_no_search_skips_the_whole_tree_walk(qapp, monkeypatch):
+    tree = _FileTreeView(SimpleNamespace(viewer=SimpleNamespace(undo_stack=[])))
+    tree.setModel(_FakeFsModel())
+    walks = []
+    monkeypatch.setattr(_FileTreeView, "_set_subtree_hidden",
+                        lambda self, parent, hidden: walks.append(hidden))
+    tree.apply_search_filter()
+    assert walks == []
+    tree._search_text = "x"
+    tree.apply_search_filter()
+    tree._search_text = ""
+    tree.apply_search_filter()          # clearing a search un-hides once
+    tree.apply_search_filter()
+    assert walks == [False]

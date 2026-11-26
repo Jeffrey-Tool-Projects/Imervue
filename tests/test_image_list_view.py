@@ -573,14 +573,41 @@ def test_the_main_window_deletes_the_list_rows_like_the_wall(monkeypatch):
 
     from Imervue.gpu_image_view.actions import delete
     from Imervue.gui.main_window_browse import MainWindowBrowseMixin
-    seen, refreshed = [], []
+    seen, removed = [], []
     monkeypatch.setattr(delete, "delete_selected_tiles",
                         lambda viewer: seen.append(set(viewer.selected_tiles)))
     viewer = SimpleNamespace(selected_tiles={"stale.png"})
-    window = SimpleNamespace(viewer=viewer, refresh_list_view=lambda: refreshed.append(True))
+    window = SimpleNamespace(
+        viewer=viewer, _browse_mode="list",
+        refresh_list_view=lambda: pytest.fail("a delete must not rebuild the list"),
+        image_list_view=SimpleNamespace(remove_paths=removed.append))
     MainWindowBrowseMixin.delete_list_selection(window, ["a.png", "b.png"])
     assert seen == [{"a.png", "b.png"}]
-    assert refreshed == [True]
+    assert removed == [["a.png", "b.png"]]
+
+
+def test_removing_rows_keeps_the_others_in_order_without_a_reset(qapp):
+    from Imervue.gui.image_list_model import ImageListModel
+    model = ImageListModel([f"/p/{name}.png" for name in "abcdef"])
+    resets, removed = [], []
+    model.modelReset.connect(lambda: resets.append(True))
+    model.rowsRemoved.connect(lambda _parent, first, last: removed.append((first, last)))
+    model._in_flight.add("/p/b.png")
+    model.remove_paths(["/p/b.png", "/p/c.png", "/p/f.png", "/p/missing.png"])
+    assert [model.path_at(row) for row in range(model.rowCount())] == [
+        "/p/a.png", "/p/d.png", "/p/e.png"]
+    assert removed == [(5, 5), (1, 2)]        # bottom run first, runs merged
+    assert resets == []
+    assert "/p/b.png" not in model._in_flight
+
+
+def test_removing_nothing_emits_nothing(qapp):
+    from Imervue.gui.image_list_model import ImageListModel
+    model = ImageListModel(["/p/a.png"])
+    removed = []
+    model.rowsRemoved.connect(lambda *args: removed.append(args))
+    model.remove_paths([])
+    assert removed == [] and model.rowCount() == 1
 
 
 def test_undo_from_the_list_runs_the_viewers_undo_and_shows_the_rows(monkeypatch):

@@ -9,7 +9,7 @@ there to prevent. So the user sees the files and decides.
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMessageBox, QWidget
@@ -55,9 +55,41 @@ def offer_permanent_delete(parent: QWidget | None, paths: Sequence[str]) -> list
     if not paths or not _ask_to_delete_permanently(parent, paths):
         return []
     removed, failed = delete_outright(paths)
+    _log_left_on_disk(failed)
+    return removed
+
+
+def _log_left_on_disk(failed: Sequence[str]) -> None:
     for path in failed:
         logger.warning("Couldn't delete %s permanently either; it is still on disk", path)
-    return removed
+
+
+def offer_permanent_delete_async(parent: QWidget | None, paths: Sequence[str],
+                                 on_done: Callable[[list[str]], None]):
+    """Like :func:`offer_permanent_delete`, but the deleting runs on a worker thread.
+
+    *on_done* gets the removed paths on the GUI thread: at once (``[]``) when
+    there is nothing to ask about or the user keeps the files, otherwise when
+    the worker finishes. Returns the worker, or ``None`` when none was needed.
+    Only window shutdown keeps the blocking form, as no event loop is left.
+    """
+    paths = list(paths)
+    if not paths or not _ask_to_delete_permanently(parent, paths):
+        on_done([])
+        return None
+    from Imervue.system.trash_ops import PermanentDeleteWorker
+    worker = PermanentDeleteWorker(paths, parent)
+
+    def finished(removed: list[str], failed: list[str]) -> None:
+        _log_left_on_disk(failed)
+        on_done(list(removed))
+
+    worker.finished_with.connect(finished)
+    # QThread.finished fires after run() has returned: deleting from the
+    # result slot could destroy a thread that is still unwinding.
+    worker.finished.connect(worker.deleteLater)
+    worker.start()
+    return worker
 
 
 def commit_pending_in_background(window) -> object | None:
@@ -93,6 +125,7 @@ def commit_pending_in_background(window) -> object | None:
     worker.finished_with.connect(
         lambda done, failed: _commit_finished(window, worker, done, failed))
     window._pending_commit_worker = worker
+    worker.finished.connect(worker.deleteLater)   # after run() returns, not from a slot
     worker.start()
     return worker
 
@@ -111,9 +144,8 @@ def _commit_finished(window, worker, done: list[str], failed: list[str]) -> None
         return
     actions = worker.commit_actions
     window._pending_commit_worker = None
-    worker.deleteLater()
     committed = {id(action) for action in actions}
     stack = window.viewer.undo_stack
     stack[:] = [action for action in stack if id(action) not in committed]
     logger.info("Sent %d pending deletion(s) to the Recycle Bin", len(done))
-    offer_permanent_delete(window, failed)
+    offer_permanent_delete_async(window, failed, lambda _removed: None)

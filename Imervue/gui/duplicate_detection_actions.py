@@ -14,7 +14,7 @@ import os
 from PySide6.QtCore import Qt
 
 from Imervue.gui.dialog_rows import confirm
-from Imervue.gui.trash_failure_notice import offer_permanent_delete
+from Imervue.gui.trash_failure_notice import offer_permanent_delete_async
 from Imervue.image.dimensions import image_dimensions
 
 logger = logging.getLogger("Imervue.duplicate_detection")
@@ -55,14 +55,18 @@ class DuplicateActionsMixin:
         self._pending_delete_items = {path: item for item, path in paths}
         self._delete_worker = FileDeleteWorker([p for _item, p in paths], self)
         self._delete_worker.finished_with.connect(self._on_delete_finished)
+        self._delete_worker.finished.connect(self._delete_worker.deleteLater)
         self._delete_worker.start()
 
     def _on_delete_finished(self, trashed: list, failed: list):
+        # What the Recycle Bin could not take (a memory card, a network share)
+        # goes for good only if the user says so, on a worker thread.
+        offer_permanent_delete_async(
+            self, failed, lambda removed: self._finish_delete(trashed, failed, removed))
+
+    def _finish_delete(self, trashed: list, failed: list, removed: list) -> None:
         import contextlib
         pending = getattr(self, "_pending_delete_items", {})
-        # What the Recycle Bin could not take (a memory card, a network share)
-        # goes for good only if the user says so.
-        removed = offer_permanent_delete(self, failed)
         for path in [*trashed, *removed]:
             item = pending.pop(path, None)
             if item is None:
@@ -77,9 +81,8 @@ class DuplicateActionsMixin:
             if path not in removed:
                 logger.warning("Failed to delete %s", path)
         self._pending_delete_items = {}
-        if self._delete_worker is not None:
-            self._delete_worker.deleteLater()
-            self._delete_worker = None
+        # The worker deletes itself once its thread ends (connected at start).
+        self._delete_worker = None
         self._delete_btn.setEnabled(True)
         self._scan_btn.setEnabled(True)
         self._select_redundant_btn.setEnabled(True)

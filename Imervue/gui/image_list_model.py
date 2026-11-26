@@ -14,6 +14,17 @@ from Imervue.gui.image_list_cells import ImageListCellsMixin
 from Imervue.gui.image_list_sort import ImageListSortMixin
 
 
+def _runs(rows: list[int]) -> list[tuple[int, int]]:
+    """Ascending *rows* grouped into ``(first, last)`` runs of consecutive numbers."""
+    runs: list[tuple[int, int]] = []
+    for row in rows:
+        if runs and row == runs[-1][1] + 1:
+            runs[-1] = (runs[-1][0], row)
+        else:
+            runs.append((row, row))
+    return runs
+
+
 class ImageListModel(
     ImageListFetchMixin,
     ImageListRowsMixin,
@@ -71,6 +82,24 @@ class ImageListModel(
         self._retry.clear()
         self._stale.clear()
         self.endResetModel()
+
+    def remove_paths(self, paths) -> None:
+        """Take the rows of *paths* out, keeping every other row and its loaded data.
+
+        A delete used to rebuild the whole table: a model reset, an
+        ``exists()`` per row and a re-sort, for a handful of removed rows.
+        Removes contiguous runs from the bottom up so row numbers stay valid.
+        """
+        doomed = set(paths)
+        rows = [row for row, meta in enumerate(self._rows) if meta.path in doomed]
+        for first, last in reversed(_runs(rows)):
+            self.beginRemoveRows(QModelIndex(), first, last)
+            del self._rows[first:last + 1]
+            self.endRemoveRows()
+        for path in doomed:
+            self._in_flight.discard(path)
+            self._retry.pop(path, None)
+            self._stale.discard(path)
 
     def path_at(self, row: int) -> str | None:
         if 0 <= row < len(self._rows):

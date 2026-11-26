@@ -311,6 +311,18 @@ class FileDeleteWorker(_BatchFileWorker):
         super().__init__(lambda report: trash_batch(snapshot, report), snapshot, parent)
 
 
+class PermanentDeleteWorker(_BatchFileWorker):
+    """Delete *paths* for good off the GUI thread (``delete_outright``).
+
+    Only for what the Recycle Bin refused and the user chose to delete: a
+    folder on a memory card or network share can take seconds to remove.
+    """
+
+    def __init__(self, paths: Iterable[str], parent=None) -> None:
+        snapshot = list(paths)
+        super().__init__(lambda report: delete_outright(snapshot, report), snapshot, parent)
+
+
 class FilePurgeWorker(_BatchFileWorker):
     """Unlink *unlink_paths* and trash *trash_paths* off the GUI thread."""
 
