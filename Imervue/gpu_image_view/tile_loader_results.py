@@ -17,7 +17,7 @@ from PySide6.QtCore import QMutexLocker
 from Imervue.system.qt_timers import call_later
 from Imervue.image.browser_state import is_missing_file_error, is_transient_load_error
 from Imervue.gpu_image_view.tile_viewport import record_tile_extent
-from Imervue.gpu_image_view.tile_loader_offline import file_signature
+from Imervue.gpu_image_view.tile_loader_offline import take_landed_signature
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from Imervue.gpu_image_view.gpu_image_view import GPUImageView
@@ -53,7 +53,9 @@ def on_thumbnail_loaded(view: GPUImageView, img_data, path, generation) -> None:
     if hasattr(view.main_window, "clear_image_issue"):
         view.main_window.clear_image_issue(path)
     view._tile_load_times[path] = time.monotonic()
-    sig = file_signature(path)
+    # Stat'ed by the worker beside its decode: one stat per tile on the GUI
+    # thread added up across a folder of thousands.
+    sig = take_landed_signature(path)
     if sig is not None:
         signatures = getattr(view, "_tile_file_signatures", None)
         if not isinstance(signatures, dict):

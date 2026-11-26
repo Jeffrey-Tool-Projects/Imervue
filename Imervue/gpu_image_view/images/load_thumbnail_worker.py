@@ -41,6 +41,8 @@ class LoadThumbnailWorker(QRunnable):
                 if img_data is None:
                     return
             if not self._abort:
+                from Imervue.gpu_image_view.tile_loader_offline import note_landed_signature
+                note_landed_signature(self.path)
                 self.signals.finished.emit(img_data, self.path, self.generation)
         except Exception as e:
             logger.exception(f"Thumbnail load failed: {self.path} - {e}")

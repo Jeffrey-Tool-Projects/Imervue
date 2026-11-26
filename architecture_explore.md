@@ -449,7 +449,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 
 #### 其他
 
-`browser_state.py`(49) 共用瀏覽狀態的公開匯入位置（再匯出下列 `browser_state_*` 兄弟模組的名稱）· `browser_state_index.py`(153) `ImageMeta` 與 `ImageMetadataIndex`：以 stat 為主的中繼資料快取（尺寸按需讀、暫時性 stat 失敗不快取、改名搬移、取樣雜湊）· `browser_state_filter.py`(94) `ImageFilterSpec`、`match_filter`／`filter_paths`、日期區間、`refilter_keeping_current`（明確開啟的圖依資料夾順序保留）· `browser_state_query.py`(55) 過濾用的逐張判斷：標籤、評分運算式（`>=`／`<=`／`>`／`<`／等於）、原始查詢 token（`tag:`／`rating:`／`date:`／檔名）· `browser_state_repair.py`(83) 遺失檔案偵測、同名配對、根目錄重定位、遺失／暫時性載入錯誤分類 · `browser_state_renames.py`(86) 依大小＋mtime＋副檔名推斷同檔改名（取最相近檔名）與檢視器逐路徑快取搬移 ·
+`browser_state.py`(49) 共用瀏覽狀態的公開匯入位置（再匯出下列 `browser_state_*` 兄弟模組的名稱）· `browser_state_index.py`(179) `ImageMeta` 與 `ImageMetadataIndex`（`unprimed`／`read_stats`／`absorb_stats` 讓 stat 在別的執行緒讀、在 GUI 執行緒收）：以 stat 為主的中繼資料快取（尺寸按需讀、暫時性 stat 失敗不快取、改名搬移、取樣雜湊）· `browser_state_filter.py`(94) `ImageFilterSpec`、`match_filter`／`filter_paths`、日期區間、`refilter_keeping_current`（明確開啟的圖依資料夾順序保留）· `browser_state_query.py`(55) 過濾用的逐張判斷：標籤、評分運算式（`>=`／`<=`／`>`／`<`／等於）、原始查詢 token（`tag:`／`rating:`／`date:`／檔名）· `browser_state_repair.py`(83) 遺失檔案偵測、同名配對、根目錄重定位、遺失／暫時性載入錯誤分類 · `browser_state_renames.py`(86) 依大小＋mtime＋副檔名推斷同檔改名（取最相近檔名）與檢視器逐路徑快取搬移 ·
 `batch_move_planner.py`(114) 無碰撞批次搬移規劃 · `animation_edit.py`(95) GIF/APNG 反轉/回力鏢/速度 ·
 `caption.py`(91) 本地視覺 LLM 產生 alt-text（經 `system/local_llm.post_json`；EXIF 編輯器的 Describe 用它） · `ocr.py`(159) Tesseract · `portrait_retouch.py`(177) ·
 `speech_*`／`text_*` 相關在 `paint/`
@@ -475,7 +475,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `prefetch_memory.py` | 127 | `PrefetchMemoryMixin`：相鄰圖預取與 RSS 壓力清理；CPU 陣列以視窗 RAM 配額判斷，不混用 VRAM |
 | `view_mouse.py` | 148 | `ViewMouseMixin`：滾輪縮放（含放大鏡倍率、格線與閱讀模式捲動）、按壓／拖曳／放開、雙擊切換 |
 | `gl_renderer.py` | 349 | 現代 OpenGL 渲染器（VBO + GLSL），shader 編譯失敗時退回 immediate mode |
-| `tile_grid_renderer.py` | 282 | 只依共享 TileViewport 候選列／欄繪製；繪製、載入與淘汰使用同一 frame geometry，失敗也清除 transient geometry；零面積 tile／placeholder 不繪製 |
+| `tile_grid_renderer.py` | 291 | 只依共享 TileViewport 候選列／欄繪製；繪製、載入與淘汰使用同一 frame geometry，失敗也清除 transient geometry；零面積 tile／placeholder 不繪製；超出本幀上傳額度的格子先畫 placeholder 並要求下一幀 |
 | `tile_viewport.py` | 112 | 純運算格線 viewport、列／欄 buffer 候選、cell origin 與 cached 最大尺寸；繪製／載入／淘汰共用 |
 | `thumbnail_queue.py` | 118 | 純運算 bounded 工作計畫；可見格之後再排上下各一個畫面的列（`LOOKAHEAD_SCREENS`，不算進度）、捲動替換 unstarted work、source membership 索引、current workload 進度、filmstrip／retry 與 full-size extent 的 bounded backfill |
 | `deep_zoom_renderer.py` | 281 | Deep-zoom 圖磚 + minimap GL 繪製（minimap 只在圖片超出畫布時顯示，見 `fit_view.minimap_visible`；底片條的 letterbox 帶照畫） |
@@ -521,10 +521,10 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | 模組 | 行數 | 功用 |
 | --- | ---: | --- |
 | `tile_loader.py` | 281 | bounded viewport 縮圖排程：visible buffer／filmstrip／retry 共用 worker slots，重複請求合併、source rewrite 另排一次；持有 `LoadThumbnailWorker`／`QThreadPool` 的唯一使用點與每 4 秒離線掃描計時器；三個 `tile_loader_*` 兄弟模組的公開名稱都由此 re-export（外部與測試 patch 點不變） |
-| `tile_loader_results.py` | 178 | worker 結果落地：generation／O(1) membership 驗證、grid mutex 下寫入 tile cache 與檔案簽章、Missing／失敗狀態與一次性 toast、暫時性錯誤最多兩次退避重試、進度列合併更新、undo／filmstrip 直接插入 |
+| `tile_loader_results.py` | 180 | worker 結果落地：generation／O(1) membership 驗證、grid mutex 下寫入 tile cache 與檔案簽章、Missing／失敗狀態與一次性 toast、暫時性錯誤最多兩次退避重試、進度列合併更新、undo／filmstrip 直接插入；落地取 worker 記下的檔案簽章，不在 GUI 執行緒 stat |
 | `tile_loader_sync.py` | 189 | 圖片清單變動：增量同步保留暖快取；只新增圖片時（資料夾掃描的後續批次）保留執行中的解碼與同一世代 queue，有圖片離開才取消重排；有離開也有新增時才依簽章遷移改名檔案、焦點與選取帶過；換資料夾重置 view memory、冷快取 reload 與 filmstrip 去重的純函式判斷 |
-| `tile_loader_offline.py` | 135 | 背景 stat 掃描 worker 與結果套用：消失／恢復／被他程式覆寫的檔案切換狀態、重新解碼並批次 refetch 清單列 |
-| `tile_textures.py` | 136 | incoming mipmap 容量前先淘汰畫面外貼圖；使用共享 viewport 候選計算精確 cached visibility，GL 刪除成功才記帳 |
+| `tile_loader_offline.py` | 163 | 背景 stat 掃描 worker 與結果套用：消失／恢復／被他程式覆寫的檔案切換狀態、重新解碼並批次 refetch 清單列；`note_landed_signature`／`take_landed_signature`：縮圖 worker 解碼後順手 stat，落地時 GUI 執行緒直接取用（上限 4096 筆） |
+| `tile_textures.py` | 165 | incoming mipmap 容量前先淘汰畫面外貼圖；使用共享 viewport 候選計算精確 cached visibility，GL 刪除成功才記帳；`UploadBudget`／`UPLOAD_BYTES_PER_FRAME`（16 MB）：一幀新上傳的紋理上限，第一張一定放行 |
 | `tile_wall_loading.py` | 99 | 牆面 loading 狀態與轉圈幾何（大資料夾/網路磁碟不再空白） |
 | `prefetch_scheduler.py` | 235 | QObject 預取協作者：實際 pyramid bytes／解碼 ticket 共用 RAM 配額、過期退休與 queued terminal identity 驗證、owner destruction 回收未送達結果 |
 | `deep_zoom_priority.py` | 40 | 圖磚渲染優先權 |
@@ -545,7 +545,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `image_loader_scan.py` | 199 | 資料夾列舉：`_is_listed`（跳過隱藏檔）、`_scan_images`（依排序一次排完，修改時間／大小取自 scandir 的 stat）、`_scan_images_for_user`（依解析度或拍攝日期這類要逐檔讀標頭的排序（`_HEADER_SORTS`）走 `folder_index` 快取）、`_sort_for_user`、`FolderScanWorker`（分批掃描大資料夾：第一批 32 張先送、之後每批 256；批次只按名稱或免開檔的排序，要讀標頭的排序只在最後一次；未中止就一定送 `finished`，失敗時保留已列出的檔案） |
 | `image_loader_open.py` | 178 | 開啟資料夾／檔案到檢視器：漸進式資料夾掃描（`cancel_folder_scan` 世代號作廢過期批次、`FolderScanUpdates` 合併、結束時 HEIF 提示與 `dispatch_folder_opened`）、`_open_file`（整個資料夾重建清單，直接開啟的隱藏檔仍加進清單，重套瀏覽篩選）、RAW+JPEG 堆疊收合 |
 | `images/folder_scan_updates.py` | 52 | 掃描首批立即呈現，其後 50ms 合併結果，結束採用最終排序；切換路徑與關閉時取消，避免重複重建與過期回呼 |
-| `load_thumbnail_worker.py` | 152 | 單張縮圖解碼 `QRunnable`（點陣圖交給 `image_loader._load_raster_thumbnail`／`_load_raster`，和檢視器同一條解碼：EXIF 轉正、sRGB、16 位元灰階縮放、巨圖一次一張的 `decode_slot`；RAW 取 `raw_loader.develop_raw(thumbnail=True)` 的轉正預覽）；被中止的縮圖解碼已讀檔解碼完就仍寫入磁碟快取，只是不回報 |
+| `load_thumbnail_worker.py` | 154 | 單張縮圖解碼 `QRunnable`（點陣圖交給 `image_loader._load_raster_thumbnail`／`_load_raster`，和檢視器同一條解碼：EXIF 轉正、sRGB、16 位元灰階縮放、巨圖一次一張的 `decode_slot`；RAW 取 `raw_loader.develop_raw(thumbnail=True)` 的轉正預覽）；被中止的縮圖解碼已讀檔解碼完就仍寫入磁碟快取，只是不回報；回報前記下檔案簽章 |
 | `image_model.py` | 24 | `ImageModel`：目前資料夾的圖片路徑清單 |
 | `prefetch.py` | 178 | 預載視窗大小與方向追蹤（`NavigationDirectionTracker`） |
 
@@ -679,14 +679,14 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `tooltip_text.py` | 160 | 多語言提示範本、既有說明的工作區範圍解析、buddy／表單／網格／巢狀列欄位名稱；不讀輸入值 |
 | `main_window_filter.py` | 254 | `MainWindowFilterMixin`：檢視器上方的篩選列（檔名／副檔名／標籤／日期／評分）、套用並盡量保住目前圖片、狀態存回 |
 | `main_window_missing.py` | 160 | `MainWindowMissingMixin`：遺失檔批次處理（依檔名自動配對、移除、整個根目錄搬移）與每路徑中繼資料的遷移 |
-| `main_window_folders.py` | 363 | `MainWindowFoldersMixin`：輪詢目前資料夾（回到前景時立刻檢查並 refresh 資料夾樹）；變更後由 `FolderRescanWorker` 在 thread pool 重新列出並排序，回到 GUI 執行緒以世代號丟棄過期結果、比對時排除待刪除的軟刪除檔，只有出現新檔才重讀資料夾樹；重整清單時保住 deep-zoom 圖、資料夾消失時的復原、每資料夾工作階段存取 |
+| `main_window_folders.py` | 405 | `MainWindowFoldersMixin`：輪詢目前資料夾（回到前景時立刻檢查並 refresh 資料夾樹）；變更後由 `FolderRescanWorker` 在 thread pool 重新列出並排序，回到 GUI 執行緒以世代號丟棄過期結果、比對時排除待刪除的軟刪除檔，只有出現新檔才重讀資料夾樹；重整清單時保住 deep-zoom 圖、資料夾消失時的復原、每資料夾工作階段存取；`_prime_metadata` 以 `MetadataPrimeWorker` 在 thread pool 讀前 512 張的 stat，回 GUI 執行緒 `absorb_stats`；資料夾工作階段改 `schedule_save()` 延後寫入 |
 | `main_window_tabs.py` | 219 | `MainWindowTabsMixin`：資料夾分頁的開關、移動、循環、右鍵選單，讓分頁、檔案樹與檢視器指向同一路徑 |
 | `main_window_screens.py` | 194 | `MainWindowScreensMixin`：視窗幾何存回（落在仍存在的螢幕上）、跨不同縮放比例螢幕時重算、移動／縮放後重新適配 |
 | `main_window_views.py` | 153 | `MainWindowViewsMixin`：雙視窗、多螢幕視窗、劇院模式（快照用 `isHidden()`，別的分頁上的 dock 不會被當成隱藏；`_theater_docks_shown()` 讓存版面時劇院藏起的 dock 算顯示；離開劇院模式時請 `deep_zoom_chrome` 重新同步） |
 | `deep_zoom_chrome.py` | 194 | Deep zoom 讓圖片佔滿版面：進入時把 Folders／Image Info dock 與篩選列收成檔名列上的圖示按鈕（`DeepZoomChrome`，0 ms 單發計時器合併「清除→載入」），離開時還原進入前的可見狀態；浮動 dock 不動、劇院模式期間暫停；`uncollapsed()` 讓存 dock 版面時存的是未收合版面，`relayout()` 在套用版面後重新收合；純邏輯 `CollapseState` |
 | `main_window_status.py` | 131 | `MainWindowStatusMixin`：狀態列訊息、掃描進度條、圖片資訊標籤、記憶體壓力指示器的資料來源與清快取 |
 | `main_window_workspaces.py` | 102 | `MainWindowWorkspacesMixin`：主分頁切換（Imervue／Modify／Paint；資料夾分頁快捷鍵只在 Imervue 分頁啟用）、`choose_paint_handoff` 經 `paint_handoff` 選原圖或顯影結果、把指定（預設目前）圖片解碼成新的 Paint 文件、Modify／Paint 主分頁列的左右鍵換圖（`eventFilter`） |
-| `main_window_navigation.py` | 134 | `MainWindowNavigationMixin`：檔案樹／breadcrumb 共用的 `navigate_to_path`（樹根一律經 `tree.set_root_path`）、啟動時開上次資料夾（含還原 deep zoom）、目錄載入後更新樹、整個視窗的拖放（只收資料夾與可檢視副檔名） |
+| `main_window_navigation.py` | 130 | `MainWindowNavigationMixin`：檔案樹／breadcrumb 共用的 `navigate_to_path`（樹根一律經 `tree.set_root_path`）、啟動時開上次資料夾（含還原 deep zoom）、目錄載入後更新樹、整個視窗的拖放（只收資料夾與可檢視副檔名）；點資料夾／啟動資料夾改走 `_prime_metadata`（背景） |
 | `main_window_layout.py` | 412 | `MainWindowLayoutMixin`：主視窗建構子呼叫的 `_build_*`（檔案樹與其上方的搜尋／排序控制、檢視器欄（檔名列 `_filename_row` 兼放 deep zoom 面板切換鈕，`_build_deep_zoom_chrome`）、圖片分頁列、視圖堆疊、工作區分頁、狀態列與常駐工作指示器 `job_indicator`）；選用分頁 Puppet／Desktop Pet 只在開著時加一個空頁，第一次打開才建工作區（`_build_puppet_workspace`、`_build_pet_workspace`，後者另建系統匣圖示並重接外掛的 pet hook；寵物設定為啟動時顯示就在啟動時建） |
 | `main_window_docks.py` | 214 | `MainWindowDocksMixin`（存版面時劇院模式與 deep zoom 暫時藏起的 dock 先還原、套用／重設版面後重新收合）：Imervue 與 Modify 分頁各是一個巢狀 `QMainWindow`（`make_dock_host()`），側邊面板都是 dock（`add_dock()`，以固定 objectName 供 `saveState`）；版面存回設定（`browse_dock_state`、`modify_dock_state`）、`reset_panel_layout()`、給工作區預設用的 `dock_layout_states()` / `apply_dock_layout_states()`；`CanvasHost`：Modify 中央的提示文字 ↔ 畫布堆疊；純函式 `encode_dock_state()` / `decode_dock_state()` |
 | `optional_tabs.py` | 113 | 選用分頁的設定：`tab_enabled`／`set_tab_enabled`（`puppet_tab_enabled`、`desktop_pet_tab_enabled`，預設開、下次啟動生效）、`pet_shows_on_launch`；缺 Rigora 時 `prepare_workspace` 放提示與「安裝 Rigora」按鈕（開 `InstallDependenciesDialog`，裝好後回呼主視窗 `_on_rigora_installed` 拿掉提示、就地建工作區），`clear_install_notice` |

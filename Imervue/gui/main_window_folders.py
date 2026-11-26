@@ -19,7 +19,7 @@ from Imervue.system.qt_timers import call_later
 from Imervue.image.browser_state import detect_renamed_paths, filter_paths, migrate_view_path_state
 from Imervue.system.file_transfer import follow_saved_data
 from Imervue.multi_language.language_wrapper import language_wrapper
-from Imervue.user_settings.user_setting_dict import write_user_setting, user_setting_dict
+from Imervue.user_settings.user_setting_dict import schedule_save, user_setting_dict
 
 
 # Poll interval while waiting for the async folder scan to surface the image a
@@ -57,6 +57,33 @@ class FolderRescanWorker(QRunnable):
         except Exception:  # a worker must always report; None keeps the shown list
             logger.exception("Rescanning %s failed", self.folder)
         self.signals.done.emit(self.folder, images, self.generation)
+
+
+class _StatPrimeSignals(QObject):
+    done = Signal(object)   # list[ImageMeta]
+
+
+class MetadataPrimeWorker(QRunnable):
+    """Stat a folder's first images off the GUI thread for the metadata index.
+
+    The index keeps sizes and times for rename matching and the size/date
+    filters; up to 512 stats ran on the GUI thread on every folder click and
+    scan update, which a network share turns into a visible stall.
+    """
+
+    def __init__(self, paths: list[str]):
+        super().__init__()
+        self.paths = paths
+        self.signals = _StatPrimeSignals()
+
+    def run(self) -> None:
+        from Imervue.image.browser_state_index import ImageMetadataIndex
+        metas = []
+        try:
+            metas = ImageMetadataIndex.read_stats(self.paths)
+        except Exception:  # a worker must always report
+            logger.exception("Reading file stats failed")
+        self.signals.done.emit(metas)
 
 
 class MainWindowFoldersMixin:
@@ -115,12 +142,24 @@ class MainWindowFoldersMixin:
         if new_images == current_full:
             return
         appeared = not set(new_images) <= set(current_full)
-        self._image_metadata_index.prime(new_images, limit=512)
         self._apply_refreshed_image_list(new_images)
         if appeared:
             # The tree's own model drops removed rows by itself; re-reading it
             # from disk is only needed for files it has not seen yet.
             self.tree.refresh()
+
+    def _prime_metadata(self, paths, limit: int = 512) -> None:
+        """Have the metadata index learn the first *limit* of *paths*, off the GUI thread."""
+        index = self._image_metadata_index
+        todo = index.unprimed(paths, limit=limit)
+        if not todo:
+            return
+        worker = MetadataPrimeWorker(todo)
+        worker.signals.done.connect(self._absorb_metadata, Qt.ConnectionType.QueuedConnection)
+        QThreadPool.globalInstance().start(worker)
+
+    def _absorb_metadata(self, metas) -> None:
+        self._image_metadata_index.absorb_stats(metas)
 
     def _current_view_folder(self) -> str:
         """Folder backing the current viewer state, if any."""
@@ -153,7 +192,10 @@ class MainWindowFoldersMixin:
             ),
         }
         user_setting_dict["folder_view_sessions"] = self._folder_view_sessions
-        write_user_setting()
+        # Debounced: every folder click lands here, and a synchronous JSON
+        # write of the whole settings file each time stalled the click. The
+        # close path flushes it (``_persist_for_close``).
+        schedule_save()
 
     def _restore_folder_session(self, folder: str) -> None:
         state = self._folder_view_sessions.get(folder) or {}
@@ -296,7 +338,7 @@ class MainWindowFoldersMixin:
             return
 
         viewer._unfiltered_images = list(new_images)
-        self._image_metadata_index.prime(new_images, limit=512)
+        self._prime_metadata(new_images)
         self._refresh_tag_filter_options()
         filtered_images = filter_paths(
             new_images,

@@ -9,6 +9,8 @@ which owns the sweep timer and re-exports the public names.
 from __future__ import annotations
 
 import os
+import threading
+from collections import OrderedDict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -26,6 +28,32 @@ def file_signature(path: str) -> tuple[int, int, str] | None:
     except OSError:
         return None
     return (st.st_size, st.st_mtime_ns, Path(path).suffix.lower())
+
+
+# Signatures the thumbnail workers took next to their decode, waiting for the
+# GUI thread to collect them when the tile lands; bounded because a worker
+# whose result is discarded never comes to collect.
+_SIGNATURE_LIMIT = 4096
+_landed_signatures: OrderedDict[str, tuple[int, int, str] | None] = OrderedDict()
+_landed_lock = threading.Lock()
+
+
+def note_landed_signature(path: str) -> None:
+    """On a worker thread: stat *path* now so the landing tile need not."""
+    sig = file_signature(path)
+    with _landed_lock:
+        _landed_signatures[path] = sig
+        _landed_signatures.move_to_end(path)
+        while len(_landed_signatures) > _SIGNATURE_LIMIT:
+            _landed_signatures.popitem(last=False)
+
+
+def take_landed_signature(path: str) -> tuple[int, int, str] | None:
+    """The signature a worker took for *path*, or a stat now if none is waiting."""
+    with _landed_lock:
+        if path in _landed_signatures:
+            return _landed_signatures.pop(path)
+    return file_signature(path)
 
 
 class _OfflineScanSignals(QObject):

@@ -30,7 +30,7 @@ def _fake(*, deep_zoom_obj, tile_grid_mode):
 
 
 def test_session_records_deep_zoom_true_when_in_deep_zoom(monkeypatch):
-    monkeypatch.setattr(mod, "write_user_setting", lambda: None)
+    monkeypatch.setattr(mod, "schedule_save", lambda: None)
     fake = _fake(deep_zoom_obj=object(), tile_grid_mode=False)
     ImervueMainWindow._save_current_folder_session(fake)
     assert fake._folder_view_sessions["/folder"]["deep_zoom"] is True
@@ -38,14 +38,14 @@ def test_session_records_deep_zoom_true_when_in_deep_zoom(monkeypatch):
 
 
 def test_session_records_deep_zoom_false_on_the_tile_wall(monkeypatch):
-    monkeypatch.setattr(mod, "write_user_setting", lambda: None)
+    monkeypatch.setattr(mod, "schedule_save", lambda: None)
     fake = _fake(deep_zoom_obj=None, tile_grid_mode=True)
     ImervueMainWindow._save_current_folder_session(fake)
     assert fake._folder_view_sessions["/folder"]["deep_zoom"] is False
 
 
 def test_session_not_written_without_a_folder(monkeypatch):
-    monkeypatch.setattr(mod, "write_user_setting", lambda: None)
+    monkeypatch.setattr(mod, "schedule_save", lambda: None)
     fake = _fake(deep_zoom_obj=object(), tile_grid_mode=False)
     fake._current_view_folder = lambda: ""
     ImervueMainWindow._save_current_folder_session(fake)

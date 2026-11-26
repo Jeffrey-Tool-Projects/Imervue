@@ -119,3 +119,41 @@ def test_an_aborted_full_size_decode_is_neither_cached_nor_returned(tmp_path, mo
     worker.abort()
     assert worker._bake_fresh(None, "") is None
 
+
+def test_a_landed_tile_takes_the_signature_its_worker_recorded(tmp_path, monkeypatch):
+    from Imervue.gpu_image_view import tile_loader_offline as offline
+    path = _portrait(tmp_path)
+    offline.note_landed_signature(path)
+    monkeypatch.setattr(offline, "file_signature",
+                        lambda _p: pytest.fail("the GUI thread must not stat it again"))
+    sig = offline.take_landed_signature(path)
+    assert sig is not None and sig[2] == ".jpg"
+
+
+def test_without_a_recorded_signature_the_landing_stats_once(tmp_path, monkeypatch):
+    from Imervue.gpu_image_view import tile_loader_offline as offline
+    stats = []
+    monkeypatch.setattr(offline, "file_signature", lambda p: stats.append(p) or (1, 2, ".png"))
+    assert offline.take_landed_signature(str(tmp_path / "x.png")) == (1, 2, ".png")
+    assert stats == [str(tmp_path / "x.png")]
+
+
+def test_recorded_signatures_stay_bounded(tmp_path, monkeypatch):
+    from Imervue.gpu_image_view import tile_loader_offline as offline
+    monkeypatch.setattr(offline, "_SIGNATURE_LIMIT", 3)
+    monkeypatch.setattr(offline, "_landed_signatures", type(offline._landed_signatures)())
+    monkeypatch.setattr(offline, "file_signature", lambda p: (0, 0, p))
+    for name in "abcde":
+        offline.note_landed_signature(name)
+    assert list(offline._landed_signatures) == ["c", "d", "e"]
+
+
+def test_a_finished_worker_records_its_signature(tmp_path, monkeypatch):
+    from Imervue.gpu_image_view import tile_loader_offline as offline
+    noted = []
+    monkeypatch.setattr(offline, "note_landed_signature", noted.append)
+    worker = mod.LoadThumbnailWorker(_portrait(tmp_path), size=16)
+    worker.setAutoDelete(False)
+    worker.run()
+    assert noted == [worker.path]
+

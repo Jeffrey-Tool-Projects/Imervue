@@ -68,6 +68,32 @@ class ImageMetadataIndex:
                 break
             self.get_stat(path)
 
+    def unprimed(self, paths: Iterable[str], *, limit: int | None = None) -> list[str]:
+        """The first *limit* of *paths* with nothing cached yet (no file is touched)."""
+        out: list[str] = []
+        for i, path in enumerate(paths):
+            if limit is not None and i >= limit:
+                break
+            if self.peek(path) is None:
+                out.append(path)
+        return out
+
+    @classmethod
+    def read_stats(cls, paths: Iterable[str]) -> list[ImageMeta]:
+        """Stat *paths* (any thread); transient failures are left out to be read again."""
+        metas = []
+        for path in paths:
+            meta, cacheable = cls._read(path, with_dimensions=False)
+            if cacheable:
+                metas.append(meta)
+        return metas
+
+    def absorb_stats(self, metas: Iterable[ImageMeta]) -> None:
+        """Keep stats read elsewhere, unless the path was cached meanwhile."""
+        for meta in metas:
+            if self.peek(meta.path) is None:
+                self._stat_items[meta.path] = meta
+
     def drop_missing(self) -> None:
         for path in [p for p in self._items.keys() | self._stat_items.keys()
                      if not Path(p).exists()]:

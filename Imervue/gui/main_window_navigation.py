@@ -35,10 +35,8 @@ class MainWindowNavigationMixin:
             self.tree.set_root_path(path)
             self.viewer.clear_tile_grid()
             open_path(main_gui=self.viewer, path=path)
-            self._image_metadata_index.prime(
-                getattr(self.viewer, "_unfiltered_images", self.viewer.model.images),
-                limit=512,
-            )
+            self._prime_metadata(
+                getattr(self.viewer, "_unfiltered_images", self.viewer.model.images))
             self._refresh_tag_filter_options()
             self._restore_folder_session(path)
             self.filename_label.setText(
@@ -65,10 +63,8 @@ class MainWindowNavigationMixin:
     def _open_startup_folder(self, folder: str):
         self.tree.set_root_path(folder)
         open_path(main_gui=self.viewer, path=folder)
-        self._image_metadata_index.prime(
-            getattr(self.viewer, "_unfiltered_images", self.viewer.model.images),
-            limit=512,
-        )
+        self._prime_metadata(
+            getattr(self.viewer, "_unfiltered_images", self.viewer.model.images))
         self._refresh_tag_filter_options()
         self._restore_folder_session(folder)
         # Startup-only: reopen the last deep-zoom image if the session recorded

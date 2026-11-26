@@ -123,6 +123,12 @@ class _StubMainWindow:
     _filter_image_paths = staticmethod(ImervueMainWindow._filter_image_paths)
     _nearest_existing_parent = staticmethod(ImervueMainWindow._nearest_existing_parent)
 
+    def _prime_metadata(self, paths, limit=512):
+        """Synchronous stand-in for the background stat prime."""
+        self._image_metadata_index.absorb_stats(
+            self._image_metadata_index.read_stats(
+                self._image_metadata_index.unprimed(paths, limit=limit)))
+
     def __init__(self, images=None):
         self.viewer = _FakeViewer(images)
         self._browse_mode = "grid"
