@@ -81,3 +81,19 @@ def load_and_apply_from_settings(app) -> int:
     from Imervue.user_settings.user_setting_dict import user_setting_dict
     pct = user_setting_dict.get("ui_scale_percent", UI_SCALE_DEFAULT_PERCENT)
     return apply_ui_scale(app, pct)
+
+
+def uniform_button_size(buttons, base):
+    """Give *buttons* one fixed size: *base* at the UI scale, grown to fit the longest label.
+
+    A size fixed in pixels held an English label and cut off a longer one
+    (Japanese, Korean) or any label at a larger UI scale. Returns the size.
+    """
+    from PySide6.QtCore import QSize
+    size = QSize(scaled_px(base.width()), scaled_px(base.height()))
+    for button in buttons:
+        size = size.expandedTo(button.sizeHint())
+    for button in buttons:
+        button.setFixedSize(size)
+    return size
+

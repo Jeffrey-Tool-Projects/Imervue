@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from collections.abc import Callable
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtWidgets import (
     QFrame, QGridLayout, QLabel, QSizePolicy, QToolButton, QVBoxLayout,
     QWidget,
@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
 from Imervue.gui.annotation_dialog import open_annotation_for_path
 from Imervue.gpu_image_view.actions.keyboard_actions import rotate_current_image
 from Imervue.multi_language.language_wrapper import language_wrapper
+from Imervue.system.ui_scale import uniform_button_size
 
 if TYPE_CHECKING:
     from Imervue.gpu_image_view.gpu_image_view import GPUImageView
@@ -97,6 +98,7 @@ class ModifyActionsWidget(QWidget):
                 self._do_reset),
         ]
 
+        made: list[QToolButton] = []
         for idx, (key, fallback, glyph, handler) in enumerate(buttons):
             btn = QToolButton(self)
             label = lang.get(key, fallback)
@@ -106,11 +108,12 @@ class ModifyActionsWidget(QWidget):
             btn.setText(f"{glyph}\n{label}")
             btn.setToolTip(lang.get(key, fallback))
             btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
-            btn.setFixedSize(84, 52)
             btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             btn.clicked.connect(self._wrap(handler))
             row, col = divmod(idx, 3)
             grid.addWidget(btn, row, col, Qt.AlignmentFlag.AlignCenter)
+            made.append(btn)
+        uniform_button_size(made, QSize(84, 52))
 
         root.addLayout(grid)
 

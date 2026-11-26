@@ -58,6 +58,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261126-05 | 2026-11-26 | Keep labels whole in every language | #fix #ui #i18n | [2026-11.md](2026-11.md) |
 | U-20261126-04 | 2026-11-26 | Fill the thumbnail wall sooner | #fix #performance #thumbnails | [2026-11.md](2026-11.md) |
 | U-20261126-03 | 2026-11-26 | Folder loading always finishes and points to Deep Zoom | #fix #ui #browse | [2026-11.md](2026-11.md) |
 | U-20261126-02 | 2026-11-26 | Stop deletes from freezing the window | #fix #performance #delete | [2026-11.md](2026-11.md) |
@@ -78,6 +79,6 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 | [2026-09.md](2026-09.md) | 2026-09 | 278 |
 | [2026-09-b.md](2026-09-b.md) | 2026-09 | 86 |
 | [2026-09-c.md](2026-09-c.md) | 2026-09 | 36 |
-| [2026-11.md](2026-11.md) | 2026-11 | 13 |
+| [2026-11.md](2026-11.md) | 2026-11 | 14 |
 | [2026-10.md](2026-10.md) | 2026-10 | 108 |
 | [2026-10-b.md](2026-10-b.md) | 2026-10 | 42 |

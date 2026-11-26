@@ -270,7 +270,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | `natural_sort.py` | 29 | `natural_key(name)`：和檔案總管一樣的自然排序鍵（`img2` 在 `img10` 之前，不分大小寫，全形數字也算數字；相等時依小寫、原名定序）；檢視器的名稱排序（縮圖格、上下張、資料夾快取）、`sort_menu`、網頁相簿與各批次對話框的清單都用它，和檔案樹的 numeric `QCollator` 一致 |
 | `pillow_setup.py` | 25 | `configure_pillow()`：GUI（`__main__.main`）、直接執行的 CLI、MCP server 啟動時套用的 Pillow 設定：`raise_pixel_limit()` 加上 `ImageFile.LOAD_TRUNCATED_IMAGES`，中途截斷的 JPEG／PNG／TIFF／GIF／BMP（下載或複製中斷、從故障記憶卡救回）像瀏覽器一樣讀到截斷處，不再整張打不開；整個行程生效，測試不經過這裡，所以測試裡仍是 Pillow 預設 |
 | `pixel_limit.py` | 87 | `raise_pixel_limit()`：把 Pillow 的 `MAX_IMAGE_PIXELS` 依實體記憶體放寬（`total_memory_bytes()`；拒絕點落在解碼需要全部記憶體處，16 GB 約 13 億像素，不低於 Pillow 預設），由 `pillow_setup.configure_pillow()` 呼叫；`decode_slot(pixels)`：超過 Pillow 預設的巨圖一次只解一張（`image_loader` 的點陣解碼與縮圖使用），避免縮圖 worker 同時解多張全景圖耗盡記憶體 |
-| `ui_scale.py` | 83 | 應用程式全域 UI 縮放係數（必須在任何 widget 佈局前套用）；`scale_factor()` / `scaled_px()` / `font_px()` 讓以像素寫死的寬高與 `font-size` 跟著縮放 |
+| `ui_scale.py` | 99 | 應用程式全域 UI 縮放係數（必須在任何 widget 佈局前套用）；`scale_factor()` / `scaled_px()` / `font_px()` 讓以像素寫死的寬高與 `font-size` 跟著縮放；`uniform_button_size(buttons, base)`：縮放後的基準尺寸再放大到最長的標籤，一組按鈕同尺寸（像素寫死的按鈕在日文、韓文或放大 UI 時會截字） |
 | `watch_folder.py` | 139 | 監控資料夾自動化：新檔案進來自動套用動作；預設收檢視器能開的每種靜態格式（連線拍攝的 RAW 也算）；經 `list_images` 列舉，Mac 複製進來的 `._` 檔不觸發動作 |
 
 ### 6.3 `Imervue/user_settings/`
@@ -661,7 +661,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `annotation_drawing.py` | 417 | `AnnotationDrawingMixin`：各種標註與九種筆刷的 QPainter 繪製、選取控點、裁切遮罩；`HANDLE_SIZE` |
 | `annotation_crop.py` | 172 | `AnnotationCropMixin`：裁切工具的比例、控點命中與拖曳；`handle_cursor()` |
 | `annotation_destructive.py` | 252 | `AnnotationDestructiveMixin` + `_BakeDestructiveCommand`：先解析完整品質，再顯示馬賽克／模糊強度對話框、區域預覽與烘焙進底圖 |
-| `annotation_dialog.py` | 805 | macOS Preview 式標註對話框（編輯器版面、工具、快捷鍵、狀態列） |
+| `annotation_dialog.py` | 807 | macOS Preview 式標註對話框（編輯器版面、工具、快捷鍵、狀態列）；左側工具鈕與兩側面板寬度依標籤與 UI 縮放計算，不再寫死像素 |
 | `annotation_file_actions.py` | 202 | `AnnotationFileActionsMixin`：標註的存檔／另存（`.tmp` 原子寫入；寫回原檔時經 `save_over_source` 保留 metadata）；模組層 `ask_save_as_path`（無法寫出的副檔名補 `.png`）/ `write_annotated` 也供 Modify 分頁在 RAW／HEIC／多影格上改存副本、複製到剪貼簿、存／讀 `.imervue_annot.json` 專案 |
 | `dialog_rows.py` | 135 | 批次／資料夾／單張工具對話框共用的列與路徑挑選：`save_path_into()` / `open_path_into()`（檔案對話框選到的路徑寫入輸入框；`save_path_into` 也回傳它，取消時回傳 None）、`may_replace()`（目標已存在又不是存檔對話框確認過的，經 `ask_to_replace()` 問要不要取代，預設不取代）、`confirm(parent, title, text)`（刪除、清空、覆寫前的是／否確認，預設「否」；Qt 自己會把「是」設成預設，所有 `QMessageBox.question` 都要指定預設按鈕，`test_questions_default_to_no` 守著）、`image_save_filter()`（PNG / JPEG / TIFF 存檔篩選）；`path_browse_row()`（路徑輸入框＋瀏覽…）、`folder_picker_row()`（再加前置標籤）、`quality_slider()`（「品質：N」標籤＋0–100 滑桿）、`action_button_row()`（靠右按鈕列）；檔案對話框與顯示切換由呼叫端負責 |
 | `color_swatch.py` | 46 | `ColorSwatchButton`：以目前顏色填滿的按鈕，點擊開啟 `QColorDialog`，`rgb()` 讀回（邊框與說明文字對話框用） |
@@ -737,7 +737,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `multi_monitor_window.py` | 295 | 多螢幕鏡像視窗 |
 | `command_palette.py` | 238 | 選單 QAction 模糊搜尋、停用原因與不中斷回饋；依穩定識別碼保存最多 64 個最近／常用命令 |
 | `menu_tree.py` | 59 | 不經 `QAction.menu()` 走訪選單樹（`submenu_index` / `iter_menu_actions`），見 §10.10 |
-| `modify_actions_widget.py` | 203 | 共用的 Modify 動作按鈕組（選單與右鍵共用） |
+| `modify_actions_widget.py` | 206 | 共用的 Modify 動作按鈕組（選單與右鍵共用）；按鈕用 `uniform_button_size` 依標籤定尺寸 |
 | `main_tab_nav.py` | 47 | Modify/Paint 分頁左右鍵的純路由決策 |
 | `screen_fit.py` | 62 | 換螢幕時主視窗自適應的純幾何 |
 | `settle_poll.py` | 58 | **有界重試**：視窗還在 settle 時反覆重跑佈局步驟（解決 `singleShot(0)` 跨不了 OS 視窗變更的問題）；`owner=` 讓鏈隨物件銷毀而停 |
@@ -980,7 +980,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `document_status.py` | 64 | 無 Qt 的文件來源／原生或 PSD 保存／扁平輸出／快照状态；文件替換重設、共用分頁及狀態提示 |
 | `document_files.py` | 120 | 原生 .imervue 開啟／指定分頁保存／另存／依序儲存全部；原子保存後才清除修改，取消／失敗保留文件，重複目标保護 |
 | `workspace_tabs.py` | 326 | 多文件分頁與唯一髒狀態；非作用分頁關閉儲存指定文件，視窗關閉原生儲存全部；來源／保存／快照共用提示 |
-| `workspace_docks.py` | 433 | 分頁式全高度 inspector、Window 選單三組邏輯分類、可捲動 dock 與穩定 objectName 的版面存還原；重設解除浮動並把工具列放回左側；未還原版面時首次顯示後才設定預設寬度 |
+| `workspace_docks.py` | 435 | 分頁式全高度 inspector、Window 選單三組邏輯分類、可捲動 dock 與穩定 objectName 的版面存還原；重設解除浮動並把工具列放回左側；未還原版面時首次顯示後才設定預設寬度；inspector 分頁不截字（ElideNone + 捲動箭頭） |
 | `workspace_content.py` | 240 | 文件內容命令（動畫影格／洋蔥皮、姿勢／貼章插入、自動區域填色與底色、漫畫頁切換）；ContentOpsMixin 組合下列三個 mixin |
 | `workspace_quick_mask.py` | 86 | QuickMaskMixin：快速遮罩進出；以圖層身分與進入時的文件還原原始像素並轉回選取 |
 | `workspace_materials.py` | 128 | MaterialDropMixin：素材依類別分派（姿勢貼成圖層、紋理／網點／圖樣平鋪並遵守選取、筆刷筆尖綁定）；透過 workspace_history 提交 Undo 與髒狀態 |

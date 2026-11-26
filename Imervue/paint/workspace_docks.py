@@ -321,7 +321,9 @@ class DockLayoutMixin:
                 bar.setObjectName("inspectorTabs")
                 bar.setExpanding(False)
                 bar.setUsesScrollButtons(True)
-                bar.setElideMode(Qt.TextElideMode.ElideRight)
+                # Scroll rather than elide: a cut-off name ("グローバ…")
+                # is what the user saw; the arrows keep every name whole.
+                bar.setElideMode(Qt.TextElideMode.ElideNone)
                 for index in range(bar.count()):
                     bar.setTabToolTip(index, bar.tabText(index))
 
