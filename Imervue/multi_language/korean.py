@@ -311,6 +311,7 @@ korean_word_dict = {
     "status_loading_progress": "로딩 중 {current}/{total}...",
     "status_loading_image": "이미지 로딩 중...",
     "tile_wall_loading": "이미지를 불러오는 중...",
+    "tile_wall_loading_hint": "썸네일을 기다리지 않아도 왼쪽 '폴더' 패널의 이미지를 클릭하면 바로 Deep Zoom으로 열 수 있습니다.",
     "status_ready": "준비 완료",
     # Toast
     "toast_path_copied": "경로가 복사되었습니다",

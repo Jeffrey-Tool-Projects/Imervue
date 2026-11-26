@@ -147,6 +147,64 @@ def test_aborted_folder_scan_emits_nothing(qapp, tmp_path):
     assert emitted == []
 
 
+def test_folder_scan_publishes_a_small_first_batch(qapp, tmp_path):
+    for i in range(300):
+        (tmp_path / f"{i:03}.png").write_bytes(b"x")
+    worker = image_loader.FolderScanWorker(str(tmp_path))
+    batches = []
+    worker.signals.batch.connect(lambda _f, batch: batches.append(len(batch)))
+    worker.run()
+    assert batches == [32, 256, 12]
+
+
+def test_folder_scan_whose_sort_fails_still_finishes(qapp, tmp_path, monkeypatch):
+    from Imervue.gpu_image_view.images import image_loader_scan
+    for name in ("b.png", "a.png"):
+        (tmp_path / name).write_bytes(b"x")
+
+    def broken(_paths):
+        raise RuntimeError("header read exploded")
+
+    monkeypatch.setattr(image_loader_scan, "_sort_for_user", broken)
+    finished = []
+    worker = image_loader.FolderScanWorker(str(tmp_path))
+    worker.signals.finished.connect(lambda _f, images: finished.append(images))
+    worker.run()
+    assert finished == [[str(tmp_path / "a.png"), str(tmp_path / "b.png")]]
+
+
+def test_folder_scan_that_fails_mid_listing_still_finishes(qapp, tmp_path, monkeypatch):
+    from Imervue.gpu_image_view.images import image_loader_scan
+    (tmp_path / "a.png").write_bytes(b"x")
+
+    def broken(_entry):
+        raise RuntimeError("attribute read exploded")
+
+    monkeypatch.setattr(image_loader_scan, "_is_listed", broken)
+    finished = []
+    worker = image_loader.FolderScanWorker(str(tmp_path))
+    worker.signals.finished.connect(lambda _f, images: finished.append(images))
+    worker.run()
+    assert finished == [[]]
+
+
+def test_header_sort_batches_come_in_name_order(qapp, tmp_path, monkeypatch):
+    from Imervue.gpu_image_view.images import image_loader_scan
+    from Imervue.user_settings.user_setting_dict import user_setting_dict
+    for name in ("b.png", "a.png"):
+        (tmp_path / name).write_bytes(b"x")
+    sorted_lists = []
+    monkeypatch.setattr(image_loader_scan, "_sort_for_user",
+                        lambda paths: sorted_lists.append(list(paths)) or list(paths))
+    user_setting_dict["sort_by"] = "resolution"
+    batches = []
+    worker = image_loader.FolderScanWorker(str(tmp_path))
+    worker.signals.batch.connect(lambda _f, batch: batches.append(batch))
+    worker.run()
+    assert batches == [[str(tmp_path / "a.png"), str(tmp_path / "b.png")]]
+    assert len(sorted_lists) == 1     # only the final list opens the files
+
+
 # ---------------------------------------------------------------- sorting helpers
 
 def test_sort_for_user_follows_the_name_setting(monkeypatch):

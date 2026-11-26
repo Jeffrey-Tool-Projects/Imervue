@@ -299,6 +299,7 @@ traditional_chinese_word_dict = {
     "status_loading_progress": "載入中 {current}/{total}...",
     "status_loading_image": "載入圖片中...",
     "tile_wall_loading": "正在載入圖片...",
+    "tile_wall_loading_hint": '不用等縮圖載完：直接點左側「資料夾」面板裡的圖片，就能用 Deep Zoom 開啟。',
     "status_ready": "就緒",
     # Toast
     "toast_path_copied": "已複製路徑",

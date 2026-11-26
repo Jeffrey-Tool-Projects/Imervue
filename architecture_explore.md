@@ -480,7 +480,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `thumbnail_queue.py` | 92 | 純運算 bounded 工作計畫；捲動替換 unstarted work、source membership 索引、current workload 進度、filmstrip／retry 與 full-size extent 的 bounded backfill |
 | `deep_zoom_renderer.py` | 281 | Deep-zoom 圖磚 + minimap GL 繪製（minimap 只在圖片超出畫布時顯示，見 `fit_view.minimap_visible`；底片條的 letterbox 帶照畫） |
 | `overlay_painter.py` | 172 | `OverlayPainter`：`QPainter` 疊層的編排——依狀態挑出啟用的疊層並固定繪製順序、逐層隔離例外、合成到離屏 `QImage`；各疊層由下列四個 mixin 提供（文字與幾何在 `osd_text.py`、`hud_geometry.py`，圖磚徽章在 `tile_badges.py`） |
-| `overlay_tiles.py` | 226 | `OverlayTilesMixin`：圖磚牆疊層——檔名標題、徽章、placeholder 轉圈、掃描中整牆轉圈、載入失敗／遺失面板，以及 placeholder／淡入的重繪計時器 |
+| `overlay_tiles.py` | 241 | `OverlayTilesMixin`：圖磚牆疊層——檔名標題、徽章、placeholder 轉圈、掃描中整牆轉圈（下方提示可直接點資料夾面板的圖片進 Deep Zoom）、載入失敗／遺失面板，以及 placeholder／淡入的重繪計時器 |
 | `overlay_hud.py` | 225 | `OverlayHudMixin`：縮放百分比、RGB 直方圖與裁切讀數、動畫幀指示、F3 OSD（EXIF 行快取）、Ctrl+F3 Debug HUD、短暫的快速中繼資料 HUD |
 | `overlay_inspect.py` | 173 | `OverlayInspectMixin`：像素格線與 hover RGB HUD、deep zoom 與圖磚牆放大鏡、橡皮筋縮放框 |
 | `overlay_filmstrip.py` | 143 | `OverlayFilmstripMixin`：底部 filmstrip（縮圖 pixmap 快取、缺圖時要求縮圖）、載入中低解析預覽與「Loading…」膠囊、載入失敗面板 |
@@ -542,7 +542,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | --- | ---: | --- |
 | `image_loader.py` | 245 | **核心載入路徑**：`decode_image_file()`（解碼成檢視器看到的 RGBA，不套 recipe 與檢視模擬；Modify 與 Paint 用它當底圖）、`decode_image(path, *, max_edge=None)`（同一份解碼成 Pillow 影像，全不透明轉 RGB，可縮到長邊；輸出與預覽共用）、`load_image_file()`（RAW/SVG/HEIF/JXL/一般點陣 → RGBA，可套 recipe）、`open_path()` 對外入口（資料夾／檔案分派到 `image_loader_open`）；點陣圖（大圖與縮圖）先經 `to_eight_bit` 把 16 位元與浮點灰階縮成 8 位元、再轉 sRGB，並依 EXIF Orientation 轉正（舊 recipe 帶幾何時例外，見 `Recipe.base_is_oriented`）；能開的副檔名取自 `image/formats.py`；`_load_raw`、`decode_slot`、`load_image_file` 留在這裡供測試替換，並 re-export 三個子模組的所有名稱 |
 | `image_loader_deep_zoom.py` | 89 | `LoadDeepZoomWorker`（背景建金字塔；預取模式在 worker 讀 header、先預留解碼 scratch、queued 結果保留 actual bytes，所有退出路徑都發 completed）；解碼在呼叫時經 `image_loader.load_image_file` 查找，替換仍生效 |
-| `image_loader_scan.py` | 157 | 資料夾列舉：`_is_listed`（跳過隱藏檔）、`_scan_images`（依排序一次排完，修改時間／大小取自 scandir 的 stat）、`_scan_images_for_user`（依解析度或拍攝日期這類要逐檔讀標頭的排序（`_HEADER_SORTS`）走 `folder_index` 快取）、`_sort_for_user`、`FolderScanWorker`（分批掃描大資料夾） |
+| `image_loader_scan.py` | 199 | 資料夾列舉：`_is_listed`（跳過隱藏檔）、`_scan_images`（依排序一次排完，修改時間／大小取自 scandir 的 stat）、`_scan_images_for_user`（依解析度或拍攝日期這類要逐檔讀標頭的排序（`_HEADER_SORTS`）走 `folder_index` 快取）、`_sort_for_user`、`FolderScanWorker`（分批掃描大資料夾：第一批 32 張先送、之後每批 256；批次只按名稱或免開檔的排序，要讀標頭的排序只在最後一次；未中止就一定送 `finished`，失敗時保留已列出的檔案） |
 | `image_loader_open.py` | 178 | 開啟資料夾／檔案到檢視器：漸進式資料夾掃描（`cancel_folder_scan` 世代號作廢過期批次、`FolderScanUpdates` 合併、結束時 HEIF 提示與 `dispatch_folder_opened`）、`_open_file`（整個資料夾重建清單，直接開啟的隱藏檔仍加進清單，重套瀏覽篩選）、RAW+JPEG 堆疊收合 |
 | `images/folder_scan_updates.py` | 52 | 掃描首批立即呈現，其後 50ms 合併結果，結束採用最終排序；切換路徑與關閉時取消，避免重複重建與過期回呼 |
 | `load_thumbnail_worker.py` | 149 | 單張縮圖解碼 `QRunnable`（點陣圖交給 `image_loader._load_raster_thumbnail`／`_load_raster`，和檢視器同一條解碼：EXIF 轉正、sRGB、16 位元灰階縮放、巨圖一次一張的 `decode_slot`；RAW 取 `raw_loader.develop_raw(thumbnail=True)` 的轉正預覽） |

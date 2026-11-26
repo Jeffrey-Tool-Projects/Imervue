@@ -313,6 +313,7 @@ japanese_word_dict = {
     "status_loading_progress": "読み込み中 {current}/{total}...",
     "status_loading_image": "画像を読み込み中...",
     "tile_wall_loading": "画像を読み込んでいます...",
+    "tile_wall_loading_hint": 'サムネイルを待たなくても、左の「フォルダー」パネルの画像をクリックすればすぐ Deep Zoom で開けます。',
     "status_ready": "準備完了",
     # Toast
     "toast_path_copied": "パスをコピーしました",

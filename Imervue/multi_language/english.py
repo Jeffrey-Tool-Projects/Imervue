@@ -328,6 +328,7 @@ english_word_dict = {
     "status_loading_progress": "Loading {current}/{total}...",
     "status_loading_image": "Loading image...",
     "tile_wall_loading": "Loading images...",
+    "tile_wall_loading_hint": 'You can click an image in the Folders panel to open it in Deep Zoom now.',
     "status_ready": "Ready",
     # Toast
     "toast_path_copied": "Path copied",

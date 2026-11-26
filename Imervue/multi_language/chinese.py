@@ -299,6 +299,7 @@ chinese_word_dict = {
     "status_loading_progress": "加载中 {current}/{total}...",
     "status_loading_image": "加载图片中...",
     "tile_wall_loading": "正在加载图片...",
+    "tile_wall_loading_hint": '不用等缩略图加载完：直接点击左侧“文件夹”面板中的图片，即可用 Deep Zoom 打开。',
     "status_ready": "就绪",
     # Toast
     "toast_path_copied": "已复制路径",

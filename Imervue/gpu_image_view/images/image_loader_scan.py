@@ -5,6 +5,7 @@ Split out of :mod:`image_loader`, which re-exports every name here.
 """
 from __future__ import annotations
 
+import logging
 import os
 
 from PySide6.QtCore import QRunnable, Signal, QObject
@@ -12,6 +13,8 @@ from PySide6.QtCore import QRunnable, Signal, QObject
 from Imervue.system.hidden_files import is_hidden
 from Imervue.system.natural_sort import natural_key
 from Imervue.image.formats import VIEWER_EXTENSIONS
+
+logger = logging.getLogger("Imervue.folder_scan")
 
 
 class _FolderScanSignals(QObject):
@@ -26,8 +29,18 @@ def _is_listed(entry: os.DirEntry) -> bool:
             and not is_hidden(entry))
 
 
+# The first batch goes out small so a folder shows its first thumbnails while
+# the rest is still being listed (a network share lists slowly).
+FIRST_BATCH_SIZE = 32
+
+
 class FolderScanWorker(QRunnable):
-    """Scan a folder in chunks so very large folders can appear progressively."""
+    """Scan a folder in chunks so very large folders can appear progressively.
+
+    ``finished`` is always emitted unless the scan was aborted: the viewer's
+    "Loading images" spinner waits for it, so a failure that skipped it left
+    the spinner up for good.
+    """
 
     def __init__(self, folder: str, batch_size: int = 256):
         super().__init__()
@@ -40,28 +53,43 @@ class FolderScanWorker(QRunnable):
         self._abort = True
 
     def run(self) -> None:
-        import os
         found: list[str] = []
-        batch: list[str] = []
         try:
-            with os.scandir(self.folder) as it:  # NOSONAR - user-selected local folder
-                for entry in it:
-                    if self._abort:
-                        return
-                    if not _is_listed(entry):
-                        continue
-                    batch.append(entry.path)
-                    found.append(entry.path)
-                    if len(batch) >= self.batch_size:
-                        self.signals.batch.emit(self.folder, _sort_for_user(batch))
-                        batch = []
+            self._scan(found)
         except OSError:
-            self.signals.finished.emit(self.folder, [])
+            found = []
+        except Exception:  # a worker must always report, or the spinner never stops
+            logger.exception("Scanning %s failed", self.folder)
+        if self._abort:
             return
+        try:
+            images = _sort_for_user(found)
+        except Exception:  # an unreadable header must not lose the listing
+            logger.exception("Sorting %s failed; keeping the name order", self.folder)
+            images = _sort_by_name(found)
+        self.signals.finished.emit(self.folder, images)
+
+    def _scan(self, found: list[str]) -> None:
+        """List the folder into *found*, publishing name-sorted batches on the way.
+
+        Batches are only a preview: the final list carries the user's sort, so
+        a sort that opens every file (resolution, date taken) runs once.
+        """
+        batch: list[str] = []
+        limit = min(FIRST_BATCH_SIZE, self.batch_size)
+        with os.scandir(self.folder) as it:  # NOSONAR - user-selected local folder
+            for entry in it:
+                if self._abort:
+                    return
+                if not _is_listed(entry):
+                    continue
+                batch.append(entry.path)
+                found.append(entry.path)
+                if len(batch) >= limit:
+                    self.signals.batch.emit(self.folder, _sort_batch(batch))
+                    batch, limit = [], self.batch_size
         if batch and not self._abort:
-            self.signals.batch.emit(self.folder, _sort_for_user(batch))
-        if not self._abort:
-            self.signals.finished.emit(self.folder, _sort_for_user(found))
+            self.signals.batch.emit(self.folder, _sort_batch(batch))
 
 
 # Sorts the directory listing already answers: DirEntry.stat() comes free with
@@ -139,6 +167,20 @@ def _scan_images_for_user(directory: str) -> list[str]:
     )
     folder_index.save(directory, images, sort_by=sort_by, ascending=ascending)
     return images
+
+
+def _sort_by_name(paths: list[str]) -> list[str]:
+    from Imervue.user_settings.user_setting_dict import user_setting_dict
+    ascending = user_setting_dict.get("sort_ascending", True)
+    return sorted(paths, key=lambda p: natural_key(os.path.basename(p)), reverse=not ascending)
+
+
+def _sort_batch(paths: list[str]) -> list[str]:
+    """A scan batch in the user's order, unless that order opens every file."""
+    from Imervue.user_settings.user_setting_dict import user_setting_dict
+    if user_setting_dict.get("sort_by", "name") in _HEADER_SORTS:
+        return _sort_by_name(paths)
+    return _sort_for_user(paths)
 
 
 def _sort_for_user(paths: list[str]) -> list[str]:

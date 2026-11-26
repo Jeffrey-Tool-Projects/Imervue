@@ -149,10 +149,25 @@ class OverlayTilesMixin:
         painter.setFont(font)
         fm = painter.fontMetrics()
         painter.setPen(QColor(200, 200, 200, 220))
+        top = int(center_y + radius + _WALL_LABEL_GAP)
         painter.drawText(
-            int(center_x - fm.horizontalAdvance(text) / 2),
-            int(center_y + radius + _WALL_LABEL_GAP + fm.ascent()),
-            text,
+            int(center_x - fm.horizontalAdvance(text) / 2), top + fm.ascent(), text,
+        )
+        # The folder tree already lists the images, so the user need not wait
+        # for the wall: say so under the spinner, wrapped to the canvas width.
+        hint = lang.get(
+            "tile_wall_loading_hint",
+            "You can click an image in the Folders panel to open it in Deep Zoom now.",
+        )
+        font.setPixelSize(12)
+        painter.setFont(font)
+        painter.setPen(QColor(200, 200, 200, 170))
+        margin = 24
+        painter.drawText(
+            margin, top + fm.height() + 6, max(1, view.width() - 2 * margin), 64,
+            int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+                | Qt.TextFlag.TextWordWrap),
+            hint,
         )
         self.ensure_fade_pump()
 
