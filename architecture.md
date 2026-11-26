@@ -274,9 +274,15 @@ Desktop Pet implementation, native services, translations and packaged examples.
 Imervue retains tabs, CLI commands and MCP tools through the optional external package.
 `Imervue/system/rigora_integration.py` initializes Rigora settings, imports relevant
 legacy preferences once, synchronizes language, connects the host job registry and
-flushes settings at shutdown. Missing Rigora produces an installation notice.
-No legacy runtime remains in Imervue. Rigora has no public package release yet;
-install an authorized sibling checkout with `python -m pip install "../Rigora[gui]"`.
+flushes settings at shutdown. Missing Rigora produces an installation notice with an
+Install Rigora button. No legacy runtime remains in Imervue. Rigora has no PyPI release;
+the button installs `RIGORA_REQUIREMENT`, the source archive of the public repository at
+the commit tagged v0.1.1, with `--no-deps` (also from the packaged executable, into
+`lib/site-packages`). A new Rigora release that Imervue should install updates that commit;
+a release that needs a package Imervue does not already depend on, or a stdlib/Qt module
+the frozen builds do not carry (they add `PySide6.QtOpenGL` and `wave` for it), also
+updates the build commands. A sibling checkout still installs with
+`python -m pip install "../Rigora[gui]"`.
 Rigora owns its settings file and model cache (`RIGORA_SETTINGS_PATH`, `RIGORA_DATA_DIR`).
 The `.puppet` MIME and published Imervue schema identifiers remain stable.
 

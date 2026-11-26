@@ -239,6 +239,8 @@ jobs:
             --include-package=qt_material ^
             --include-package=imageio ^
             --include-package=rawpy ^
+            --include-module=PySide6.QtOpenGL ^
+            --include-module=wave ^
             --include-package-data=qt_material ^
             --include-package-data=imageio ^
             --include-package-data=rawpy ^

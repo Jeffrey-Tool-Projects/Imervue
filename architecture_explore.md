@@ -1,6 +1,6 @@
 # Imervue 架構全覽 (architecture_explore)
 
-> 產出日期：2026-08-03（全樹掃描）· 最後同步：2026-11-11 · 對應提交見 `git log -1 -- architecture_explore.md` · 分支 `dev` · 版本 `1.0.102`
+> 產出日期：2026-08-03（全樹掃描）· 最後同步：2026-11-26 · 對應提交見 `git log -1 -- architecture_explore.md` · 分支 `dev` · 版本 `1.0.102`
 >
 > 本文件是一次「全樹掃描」的結果：以 AST 逐檔擷取模組 docstring、類別與公開函式，
 > 再交叉比對實際程式碼撰寫而成。散文用繁體中文，模組名 / 路徑 / 型別一律保留英文。
@@ -247,7 +247,7 @@ Modern Dark／Light 共用有焦點提示的控制項、分頁導覽與表面色
 | `log_setup.py` | 100 | 集中式 logging 設定：`setup_logging()`（可重複呼叫；`app_dir()` 不可寫時退到使用者目錄；凍結時不掛 stderr handler）與 `install_exception_logging()` |
 | `macos_bundle.py` | 74 | macOS `.app` Info.plist 文件型別關聯；每種相機 RAW 對到 `public.camera-raw-image` |
 | `onboarding.py` | 81 | 首次啟動導覽步驟註冊表 |
-| `rigora_integration.py` | 54 | 選用 Rigora 套件的宿主橋接：初始化設定、一次匯入舊偏好、同步語言、連接背景工作登錄及關閉時儲存；缺少套件時提供安裝提示 |
+| `rigora_integration.py` | 84 | 選用 Rigora 套件的宿主橋接：初始化設定、一次匯入舊偏好、同步語言、連接背景工作登錄及關閉時儲存；缺少套件時提供安裝提示；`RIGORA_REQUIREMENT`／`RIGORA_INSTALL_ARGS` 固定 App 內安裝的來源（公開 GitHub 儲存庫 v0.1.1 commit 的原始碼壓縮檔，`--no-deps`，因為 Rigora 的相依都已是 Imervue 的相依；凍結版若讓 pip 解相依，會在 `lib/site-packages` 放第二份 PySide6 蓋過內建版）、`rigora_available()` 清 finder 快取後重試 import |
 | `release_notes.py` | 111 | What's-New 對話框的版本說明資料 |
 | `themes.py` | 246 | 內建配色主題：`modern_dark`（預設）、`modern_light`、`default`（系統外觀）與四個只有 QSS 的舊主題；`apply_theme` 對 modern 主題套 Fusion + 調色盤 + QSS，回到系統外觀時還原啟動時的 style 與調色盤；`offer_modern_theme` 把仍在系統外觀的設定檔一次性換成預設主題；`theme_label` 取翻譯後的名稱 |
 | `modern_theme.py` | 237 | Modern Dark / Modern Light：`ThemeColours` 色票、`build_palette()`（Fusion 用的 `QPalette`，停用文字用 muted）、`build_stylesheet()`（只塑形外框：分頁、dock 標題、捲軸、輸入框、按鈕；長度用 `em` 所以跟著 UI 縮放；刻意不碰 QComboBox / QSpinBox 以保留箭頭） |
@@ -689,7 +689,7 @@ SQLite 支撐的跨資料夾相片庫索引與整理演算法（純邏輯，無 
 | `main_window_navigation.py` | 134 | `MainWindowNavigationMixin`：檔案樹／breadcrumb 共用的 `navigate_to_path`（樹根一律經 `tree.set_root_path`）、啟動時開上次資料夾（含還原 deep zoom）、目錄載入後更新樹、整個視窗的拖放（只收資料夾與可檢視副檔名） |
 | `main_window_layout.py` | 412 | `MainWindowLayoutMixin`：主視窗建構子呼叫的 `_build_*`（檔案樹與其上方的搜尋／排序控制、檢視器欄（檔名列 `_filename_row` 兼放 deep zoom 面板切換鈕，`_build_deep_zoom_chrome`）、圖片分頁列、視圖堆疊、工作區分頁、狀態列與常駐工作指示器 `job_indicator`）；選用分頁 Puppet／Desktop Pet 只在開著時加一個空頁，第一次打開才建工作區（`_build_puppet_workspace`、`_build_pet_workspace`，後者另建系統匣圖示並重接外掛的 pet hook；寵物設定為啟動時顯示就在啟動時建） |
 | `main_window_docks.py` | 214 | `MainWindowDocksMixin`（存版面時劇院模式與 deep zoom 暫時藏起的 dock 先還原、套用／重設版面後重新收合）：Imervue 與 Modify 分頁各是一個巢狀 `QMainWindow`（`make_dock_host()`），側邊面板都是 dock（`add_dock()`，以固定 objectName 供 `saveState`）；版面存回設定（`browse_dock_state`、`modify_dock_state`）、`reset_panel_layout()`、給工作區預設用的 `dock_layout_states()` / `apply_dock_layout_states()`；`CanvasHost`：Modify 中央的提示文字 ↔ 畫布堆疊；純函式 `encode_dock_state()` / `decode_dock_state()` |
-| `optional_tabs.py` | 54 | 選用分頁的設定：`tab_enabled`／`set_tab_enabled`（`puppet_tab_enabled`、`desktop_pet_tab_enabled`，預設開、下次啟動生效）、`pet_shows_on_launch` |
+| `optional_tabs.py` | 113 | 選用分頁的設定：`tab_enabled`／`set_tab_enabled`（`puppet_tab_enabled`、`desktop_pet_tab_enabled`，預設開、下次啟動生效）、`pet_shows_on_launch`；缺 Rigora 時 `prepare_workspace` 放提示與「安裝 Rigora」按鈕（開 `InstallDependenciesDialog`，裝好後回呼主視窗 `_on_rigora_installed` 拿掉提示、就地建工作區），`clear_install_notice` |
 | `main_window_browse.py` | 157 | `MainWindowBrowseMixin`：縮圖牆／清單切換、清單啟動、從 deep zoom 返回、縮圖尺寸與間距；`preview_search_result` 把檔案樹搜尋結果交給 `navigate_to_path`（檔案時切回檢視器）；`refetch_list_rows` 把磁碟上變了的路徑轉給清單檢視；`delete_list_selection` 走縮圖牆的 `delete_selected_tiles`（可復原、之後整批進回收筒），`undo_from_list` 執行檢視器的 undo 後重建清單；`escape_from_list`：清單裡的 Esc 先離開全螢幕，否則回縮圖牆；`mark_list_selection` 把選取列交給評分、最愛、挑片、色彩標籤的同一組函式（`targets=`） |
 | `annotation_models.py` | 183 | 註解資料模型（`Annotation`、`AnnotationProject` 的 dict／JSON 存讀、種類／筆刷／工具常數），無 Qt；保留 `bake`、`jitter_seed` 的匯入位置 |
 | `annotation_render.py` | 156 | **無 Qt 的 PIL 渲染路徑** `bake()`（可在 worker / 測試中使用）：先套馬賽克／模糊，再把框、橢圓、線、箭頭、自由手繪、文字疊到透明層合成 |
@@ -1057,8 +1057,8 @@ Desktop Pet 分頁保留在 Imervue；外部 `PetWorkspace`、`PetWindow`、行�
 | `plugin_downloader_installed.py` | 123 | `PluginDownloaderInstalledMixin`：已安裝外掛偵測（含 `__init__.py` 的目錄）、選取列決定下載／重裝／刪除按鈕、確認後刪除、刷新狀態欄；`_get_plugin_dir` 在呼叫時經 `plugin_downloader` 讀取 |
 | `pip_installer.py` | 330 | 外掛相依的公開入口：`ensure_dependencies` nonblocking dependency gate（`_EnsureDepsHelper` 背景檢查、parent 已刪則 cancelled、缺套件開安裝對話框）、標準 `_https_urlopen` 守衛（拒絕非 https scheme）、`register_translations`；以 `__all__` 轉出下列 sibling 模組與 `python_finder` 的名稱（外掛與測試仍從這裡 import） |
 | `pip_embed_python.py` | 224 | 找不到 Python 時（Windows）下載 embeddable Python：釘選 SHA-256 驗證 zip 與 pip wheel、拒絕 zip-slip、啟用 `import site`、從 wheel 安裝 pip；下載在呼叫時經 `pip_installer._https_urlopen` |
-| `pip_install_workers.py` | 268 | `check_missing_packages`（凍結時查檔案系統，不在背景 import native DLL）與背景 worker：找 Python、檢查套件、安裝後 import（失敗不回報假成功）、`_InstallWorker` 逐套件在 constraints 下 `pip install`，interpreter install 互斥；持有實際 pip 子行程，取消與 stdout 靜默期限（`Timer`）可終止並 reap，finally 關閉管線與計時器 |
-| `pip_install_dialog.py` | 269 | `InstallDependenciesDialog`：搜尋／下載 Python → 安裝 → import → 成功 callback（callback 失敗可重試），發布 status，關閉時以 WorkerHost 非阻塞 retirement |
+| `pip_install_workers.py` | 270 | `check_missing_packages`（凍結時查檔案系統，不在背景 import native DLL）與背景 worker：找 Python、檢查套件、安裝後 import（失敗不回報假成功）、`_InstallWorker` 逐套件在 constraints 下 `pip install`，interpreter install 互斥；持有實際 pip 子行程，取消與 stdout 靜默期限（`Timer`）可終止並 reap，finally 關閉管線與計時器；`install_args` 讓呼叫端加上每個套件共用的 pip 參數（Rigora 用 `--no-deps`） |
+| `pip_install_dialog.py` | 271 | `InstallDependenciesDialog`：搜尋／下載 Python → 安裝 → import → 成功 callback（callback 失敗可重試），發布 status，關閉時以 WorkerHost 非阻塞 retirement；`install_args` 讓呼叫端加上每個套件共用的 pip 參數（Rigora 用 `--no-deps`） |
 | `python_finder.py` | 245 | 找有 pip 的 Python 直譯器：非凍結用 `sys.executable`，凍結時依序查 PATH、registry／安裝資料夾（或 Unix 路徑）、內嵌 Python；`_verify_python` 以 `pip --version` 驗證（Windows 上以 thread error mode 讓載入錯誤直接回傳，不跳錯誤對話框） |
 | `pip_constraints.py` | 50 | 外掛相依安裝的 pip 約束（純函式）：所有 OpenCV 發行版鎖在 5 以下（共用同一個 `cv2` 目錄；OpenCV 5 移除了 Haar 分類器），組 `pip install -c` 指令 |
 | `model_dir.py` | 50 | 外掛模型目錄的共用解析 |

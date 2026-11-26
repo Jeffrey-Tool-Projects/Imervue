@@ -1,7 +1,7 @@
 Imervue 使用手冊
 ================
 
-Puppet 與 Desktop Pet 現在使用外部 Rigora 套件。Imervue 保留分頁及既有 CLI/MCP 指令，但不再內建第二份動畫引擎。Rigora 目前是私人儲存庫，尚未公開發行套件。取得授權的相鄰 checkout 後，請在同一個 Python 環境執行 ``python -m pip install "../Rigora[gui]"``，再重新啟動 Imervue。未安裝 Rigora 時，這些分頁會顯示安裝提示，Imervue 其他功能仍可使用。Rigora 自行管理設定與模型快取；首次嵌入啟動會匯入相關既有偏好，但不共用設定檔。 請另行安裝已授權的 Rigora checkout 或 wheel；公開消費端套件不宣告尚未發行的 Rigora 相依。公開的凍結執行檔不含私人 Rigora，除非建置時已提供。使用外部 pip 安裝 Rigora 無法將它加入既有凍結執行檔。
+Puppet 與 Desktop Pet 使用外部 Rigora 套件。Imervue 保留它們的分頁及既有 CLI/MCP 指令，但不內建第二份動畫執行環境。Rigora 由其公開儲存庫（https://github.com/Jeffrey-Tool-Projects/Rigora）發布，沒有 PyPI 版本。未安裝時，Puppet 與 Desktop Pet 分頁會顯示附有 **安裝 Rigora** 按鈕的提示：按鈕會下載固定在發行 commit 的 Rigora 0.1.1，以 ``--no-deps`` 安裝（Rigora 需要的套件都已是 Imervue 的相依套件），完成後立即開啟分頁。原始碼安裝與封裝執行檔都能使用，執行檔會把 Rigora 安裝到程式旁的 ``lib/site-packages``。有 checkout 時，也可以在同一個 Python 環境執行 ``python -m pip install "../Rigora[gui]"`` 後重新啟動 Imervue。沒有 Rigora 時，Imervue 其餘功能仍可使用。Rigora 自行管理設定與模型快取；第一次嵌入啟動時會匯入相關的既有偏好設定，但不共用設定檔。
 
 檔案樹搜尋結果可按 Enter 或雙擊直接開圖，另保留定位操作。結果分別顯示檔名與相對路徑，收合結果不會清除查詢。樹狀檢視上方直接顯示排序套用於全域或此資料夾，日期與大小採用明確的方向文字，並提供可見的重設入口。搜尋會顯示資料夾與子資料夾範圍；獨立的圖片篩選則顯示可逐項移除的條件、符合數量，以及明確開啟但不符合條件而保留的圖片提示。
 

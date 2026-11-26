@@ -37,7 +37,7 @@ Modify는 원본 덮어쓰기와 사본 저장을 구분하고 대상 위치를 
 
 상태 표시줄에서 Background Jobs를 열고 실행 중 및 실패 개수를 확인할 수 있습니다. Puppet 캡처와 녹화는 출력 경로나 실패 세부 정보를 보존하여 나중에 결과 또는 폴더를 열 수 있습니다. 녹화에는 적용되지 않는 재시도 작업을 제공하지 않습니다. 웹캠은 실제 시작 중, 실행 중, 중지 중 및 오류 상태를 표시하고 장치 선택, 재시도 및 진단을 제공합니다. 종속 패키지가 없을 때 설치를 안내합니다. 명령 팔레트는 명령을 사용할 수 없는 이유를 설명하고 최근 또는 자주 사용한 명령을 우선 표시합니다.
 
-Puppet과 Desktop Pet은 외부 Rigora 패키지를 사용합니다. Imervue는 탭과 기존 CLI/MCP 명령을 유지하지만 별도의 애니메이션 구현을 포함하지 않습니다. Rigora는 현재 비공개 저장소이며 공개 패키지는 아직 출시되지 않았습니다. 접근 권한이 있는 인접 checkout에서 같은 Python 환경으로 `python -m pip install "../Rigora[gui]"`를 실행한 뒤 Imervue를 다시 시작하세요. Rigora가 없으면 해당 탭에 설치 안내가 나타나고 Imervue의 다른 기능은 계속 사용할 수 있습니다. Rigora는 자체 설정과 모델 캐시를 관리하며, 처음 내장 실행할 때 관련 기존 환경설정을 가져오되 설정 파일을 공유하지 않습니다. Rigora는 접근 권한이 있는 checkout 또는 wheel에서 별도로 설치하세요. 공개 소비자 패키지는 미출시 Rigora 의존성을 선언하지 않습니다. 공개된 패키징 실행 파일에는 빌드 시 제공하지 않는 한 비공개 Rigora가 포함되지 않습니다. 외부 pip 설치로 기존 패키징 실행 파일에 Rigora를 추가할 수 없습니다.
+Puppet과 Desktop Pet은 외부 Rigora 패키지를 사용합니다. Imervue는 탭과 기존 CLI/MCP 명령을 유지하지만 별도의 애니메이션 런타임을 포함하지 않습니다. Rigora는 공개 저장소(https://github.com/Jeffrey-Tool-Projects/Rigora)에서 배포되며 PyPI 릴리스는 없습니다. 설치되어 있지 않으면 Puppet과 Desktop Pet 탭에 **Rigora 설치** 버튼이 있는 안내가 표시됩니다. 버튼은 릴리스 커밋에 고정된 Rigora 0.1.1을 내려받아 `--no-deps`로 설치하고(Rigora에 필요한 패키지는 모두 Imervue의 의존성에 이미 포함되어 있습니다), 설치가 끝나는 즉시 탭을 엽니다. 소스 설치와 패키징 실행 파일 모두에서 동작하며, 실행 파일에서는 프로그램 옆의 `lib/site-packages`에 설치됩니다. checkout이 있다면 같은 Python 환경에서 `python -m pip install "../Rigora[gui]"`를 실행한 뒤 Imervue를 다시 시작해도 됩니다. Rigora가 없어도 Imervue의 나머지 기능은 그대로 사용할 수 있습니다. Rigora는 자체 설정과 모델 캐시를 관리하며, 처음 내장 실행할 때 관련된 기존 설정을 가져오되 설정 파일은 공유하지 않습니다.
 
 ## 목차
 

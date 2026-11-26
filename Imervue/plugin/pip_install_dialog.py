@@ -46,9 +46,11 @@ class InstallDependenciesDialog(WorkerHostMixin, QDialog):
         parent: QWidget,
         missing: list[tuple[str, str]],
         on_success=None,
+        install_args: tuple[str, ...] = (),
     ):
         super().__init__(parent)
         self._missing = missing
+        self._install_args = tuple(install_args)
         self._status_key = "dependencies:" + ",".join(sorted(imp for imp, _pip in missing))
         self._publish_status("missing", ", ".join(pip for _imp, pip in missing))
         self._on_success = on_success
@@ -208,7 +210,7 @@ class InstallDependenciesDialog(WorkerHostMixin, QDialog):
             self._log.append("(Frozen/packaged environment detected)")
 
         pip_names = [pip for _, pip in self._missing]
-        self._worker = _InstallWorker(pip_names, python)
+        self._worker = _InstallWorker(pip_names, python, self._install_args)
         self._worker.log.connect(self._on_log)
         self._worker.result_ready.connect(self._on_finished)
         self._track_finished(self._worker, "_worker")

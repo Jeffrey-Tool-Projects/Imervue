@@ -39,6 +39,9 @@ hiddenimports += collect_submodules('PySide6')
 # runtime, so the bundle must carry every submodule or those plugins fail
 # with ModuleNotFoundError.
 hiddenimports += collect_submodules('Imervue')
+# Rigora installed from inside the packaged app (Install Rigora) needs the
+# standard-library wave module, which nothing in Imervue imports.
+hiddenimports += ['wave']
 if find_spec('rigora') is not None:
     rigora_data, rigora_binaries, rigora_imports = collect_all('rigora')
     datas += rigora_data

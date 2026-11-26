@@ -1,14 +1,43 @@
 """Initialize the optional Rigora package without sharing Imervue's settings file."""
 from __future__ import annotations
 
-from importlib import import_module
+from importlib import import_module, invalidate_caches
 
 _initialized = False
+
+# Rigora has no PyPI release; the in-app installer builds it from the public
+# repository's source archive, pinned to the commit tagged v0.1.1 so a later
+# push cannot change what an install receives.
+RIGORA_COMMIT = "9f1dbbe8bf43633c86136a110fb257704527ce7f"
+RIGORA_ARCHIVE_URL = (
+    f"https://github.com/Jeffrey-Tool-Projects/Rigora/archive/{RIGORA_COMMIT}.zip"
+)
 INSTALL_MESSAGE = (
     "Puppet and Desktop Pet require Rigora. Install the Rigora package in the same "
-    "Python environment, then restart Imervue. Packaged executables require a build "
-    "that includes Rigora."
+    "Python environment, or use Install Rigora in the Puppet or Desktop Pet tab, "
+    "which also works in the packaged executable."
 )
+
+
+# Rigora needs numpy, Pillow, PySide6, PyOpenGL, imageio and imageio-ffmpeg,
+# all of which Imervue itself depends on (and a packaged executable bundles).
+# Letting pip resolve them anyway re-installs Qt: in a packaged build into
+# lib/site-packages, which sits in front of the bundle on sys.path and would
+# shadow the bundled PySide6; in a source environment over the user's own copy.
+RIGORA_REQUIREMENT = f"rigora @ {RIGORA_ARCHIVE_URL}"
+RIGORA_INSTALL_ARGS = ("--no-deps",)
+
+
+def rigora_available() -> bool:
+    """Whether ``rigora`` imports now, after the finders forget any earlier miss."""
+    invalidate_caches()
+    try:
+        import_module("rigora")
+    except ModuleNotFoundError as exc:
+        if exc.name != "rigora":
+            raise
+        return False
+    return True
 
 
 def require_rigora() -> None:
