@@ -69,7 +69,8 @@ def main():
     from rigora.desktop_pet import PetWorkspace
     result["pet_workspace_built"] = type(PetWorkspace()).__name__
     from rigora.system.app_paths import examples_dir
-    result["imeru_example"] = os.path.isfile(os.path.join(str(examples_dir()), "puppet", "imeru.puppet"))
+    imeru = os.path.join(str(examples_dir()), "puppet", "imeru.puppet")
+    result["imeru_example"] = os.path.isfile(imeru)
 
 
 try:
