@@ -217,6 +217,9 @@ class OverlayTilesMixin:
             view.update()
         elif self._placeholder_timer and self._placeholder_timer.isActive():
             self._placeholder_timer.stop()
+            if view.tile_grid_mode and getattr(view, "_tile_load_times", None):
+                # The previous frame may have been painted before the fade ended.
+                view.update()
 
     def _tiles_fading(self) -> bool:
         """True while any tile is still within its fade-in window."""

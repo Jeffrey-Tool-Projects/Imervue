@@ -57,29 +57,28 @@ class ThumbnailQueue:
     def plan(self, viewport: TileViewport, cached: Mapping[str, object],
              failed: Mapping[str, object], offline: Collection[str], *,
              wall: bool = True, hover: str | None = None,
-             full_resolution: bool = False) -> list[str]:
+             full_resolution: bool = False, allow_lookahead: bool = True) -> list[str]:
         """Replace unstarted work after a pan, keeping only bounded active jobs."""
-        indices = list(viewport.indices()) if wall else []
+        indices = list(viewport.indices(buffer=0)) if wall else []
         center = (indices[0] + indices[-1]) / 2 if indices else 0
         indices.sort(key=lambda i: (self.images[i] != hover, abs(i - center)))
         paths = list(dict.fromkeys(self.images[i] for i in indices))
         candidates = list(self.urgent)
 
-        def wanted(path: str) -> bool:
-            return (path not in self.urgent and path not in cached
-                    and path not in failed and path not in offline)
+        def needs_pixels(path: str) -> bool:
+            return path not in cached and path not in failed and path not in offline
 
-        candidates.extend(path for path in paths if wanted(path))
-        if wall:
-            # One screen of rows either side, after everything visible: the
-            # pool keeps working while the user looks, so a scroll finds the
-            # next rows decoded instead of a screen of placeholders.
+        pending = [path for path in paths if needs_pixels(path)]
+        candidates.extend(pending)
+        # Even a spare worker decoding offscreen competes for CPU and disk
+        # with the visible JPEGs. Let the renderer start prefetch after it
+        # draws the ready tiles and finishes this screen's texture uploads.
+        if wall and allow_lookahead and not pending:
             candidates.extend(path for path in self._lookahead(viewport, indices, center)
-                              if wanted(path))
-        if wall and full_resolution:
-            # Full-size tiles may overlap distant cells; bounded backfill
-            # preserves discovering those extents without N queued runnables.
-            candidates.extend(self._backfill(cached, failed, offline))
+                              if needs_pixels(path))
+            if full_resolution:
+                # Full-size tiles may overlap distant cells.
+                candidates.extend(self._backfill(cached, failed, offline))
         self.requested = set(paths) | set(self.active) | set(self.urgent) | set(self._background)
         return list(dict.fromkeys(path for path in candidates if path not in self.active))
 

@@ -173,6 +173,17 @@ class TestThumbnailLanding:
         assert shown == [(3, 7)]
         tile_loader.flush_thumbnail_progress(_fake_view([]))   # no show_progress: no-op
 
+    def test_empty_queue_reports_unknown_progress_only_while_scanning(self):
+        shown = []
+        view = _fake_view([])
+        view.main_window.show_progress = lambda done, total: shown.append((done, total))
+        view._tile_load_count = view._tile_load_total = 0
+        view._folder_scan_active = True
+        tile_loader.flush_thumbnail_progress(view)
+        view._folder_scan_active = False
+        tile_loader.flush_thumbnail_progress(view)
+        assert shown == [(0, 0)]
+
 
 class TestIncrementalSync:
     def test_identical_list_is_a_noop(self):

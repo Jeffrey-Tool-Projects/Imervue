@@ -117,10 +117,15 @@ def _on_folder_scan_finished(main_gui: GPUImageView, folder: str, images: list[s
     main_gui._folder_scan_worker = None
     # Scan over — an empty wall from here on means an empty folder, not a slow
     # one, so the spinner must stop rather than hang forever.
+    was_empty_wall = getattr(main_gui, "tile_grid_mode", False) and not main_gui.model.images
     main_gui._folder_scan_active = False
     _maybe_hint_heif(main_gui, images)
     main_gui._folder_scan_updates.finish(images)
     if not main_gui.model.images:
+        if was_empty_wall:
+            # A filter can leave the model empty in every batch. The list sync
+            # then schedules no paint to erase the last spinner frame.
+            main_gui.update()
         hide_progress = getattr(main_gui.main_window, "_hide_progress", None)
         if callable(hide_progress):
             hide_progress()

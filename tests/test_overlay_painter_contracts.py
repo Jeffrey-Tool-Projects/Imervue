@@ -203,6 +203,19 @@ class TestPlaceholderPump:
         OverlayPainter(view).tick_placeholder()
         assert view.updated == [True]
 
+    def test_tick_after_fade_deadline_requests_one_final_frame(self):
+        view = self._view(_tile_load_times={"a": time.monotonic() - 1})
+        overlay = OverlayPainter(view)
+        timer = _FakeTimer(active=True)
+        overlay._placeholder_timer = timer
+
+        overlay.tick_placeholder()
+        assert timer.stopped
+        assert view.updated == [True]
+
+        overlay.tick_placeholder()
+        assert view.updated == [True]
+
     def test_idle_wall_stops_the_timer(self):
         view = self._view()
         overlay = OverlayPainter(view)

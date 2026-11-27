@@ -7,6 +7,7 @@ from PIL import Image
 
 from Imervue.image.recipe_store import recipe_store
 from Imervue.image.thumbnail_disk_cache import thumbnail_disk_cache
+from Imervue.system.best_effort import best_effort
 
 logger = logging.getLogger("Imervue.thumbnail_worker")
 
@@ -35,37 +36,42 @@ class LoadThumbnailWorker(QRunnable):
         try:
             recipe = recipe_store.get_for_path(self.path)
             r_hash = recipe.recipe_hash() if recipe is not None else ""
-            img_data = self._try_cache_lookup(r_hash)
+            source_stat = None
+            img_data = None
+            if self.size is not None:
+                # Keep the write tied to the file version we looked up, even if
+                # another program replaces the picture after it reaches the UI.
+                source_stat = Path(self.path).stat()
+                img_data = thumbnail_disk_cache.get(
+                    self.path, self.size, r_hash, source_stat=source_stat)
+            cache_fresh = source_stat is not None and img_data is None
             if img_data is None:
-                img_data = self._bake_fresh(recipe, r_hash)
+                img_data = self._bake_fresh(recipe)
                 if img_data is None:
                     return
             if not self._abort:
                 from Imervue.gpu_image_view.tile_loader_offline import note_landed_signature
-                note_landed_signature(self.path)
+                note_landed_signature(self.path, source_stat)
                 self.signals.finished.emit(img_data, self.path, self.generation)
         except Exception as e:
             logger.exception(f"Thumbnail load failed: {self.path} - {e}")
             if not self._abort:
                 self.signals.error.emit(self.path, str(e), self.generation)
+            return
 
-    def _try_cache_lookup(self, r_hash: str):
-        if self.size is None:
-            return None
-        return thumbnail_disk_cache.get(self.path, self.size, r_hash)
+        # Even a decode cancelled mid-flight warms the disk cache. Keep the
+        # encode in this pool slot so slow storage bounds the number of writes.
+        if cache_fresh:
+            with best_effort("cache the decoded thumbnail", logger):
+                thumbnail_disk_cache.put(
+                    self.path, self.size, img_data, r_hash, source_stat=source_stat)
 
-    def _bake_fresh(self, recipe, r_hash: str):
+    def _bake_fresh(self, recipe):
         img_data = self._load_by_extension(orient=recipe is None or recipe.base_is_oriented())
         if self._abort and self.size is None:
             return None
         img_data = self._ensure_rgba(img_data)
-        img_data = self._apply_recipe(img_data, recipe)
-        if self.size is not None:
-            # Cached even when the wall moved on mid-decode: the file was read
-            # and decoded already, and the request that replaces this one finds
-            # it on disk instead of decoding it again.
-            thumbnail_disk_cache.put(self.path, self.size, img_data, r_hash)
-        return None if self._abort else img_data
+        return self._apply_recipe(img_data, recipe)
 
     def _load_by_extension(self, *, orient: bool = True):
         from Imervue.image.formats import RAW_EXTENSIONS

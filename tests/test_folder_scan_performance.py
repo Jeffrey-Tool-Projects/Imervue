@@ -175,3 +175,23 @@ def test_empty_finished_scan_stops_unknown_total_progress(qapp, monkeypatch, ima
         assert window._hide_progress.call_count == (0 if images else 1)
     finally:
         updates.deleteLater()
+
+
+@pytest.mark.parametrize("wall_visible", [True, False])
+def test_filtered_scan_clears_the_painted_loading_spinner(qapp, monkeypatch, wall_visible):
+    from Imervue.gpu_image_view.images import image_loader_open
+
+    monkeypatch.setattr(image_loader_open, "_maybe_hint_heif", lambda *_: None)
+    model = SimpleNamespace(images=[])
+    updates = FolderScanUpdates(lambda paths: setattr(model, "images", [
+        path for path in paths if path.endswith(".png")]))
+    view = SimpleNamespace(model=model, tile_grid_mode=wall_visible, update=MagicMock(),
+                           main_window=SimpleNamespace(), _folder_scan_generation=1,
+                           _folder_scan_updates=updates, _folder_scan_active=True)
+    try:
+        image_loader_open._on_folder_scan_batch(view, "folder", ["a.jpg"], 1)
+        image_loader_open._on_folder_scan_finished(view, "folder", ["a.jpg", "b.jpg"], 1)
+        assert not model.images and not view._folder_scan_active
+        assert view.update.call_count == int(wall_visible)
+    finally:
+        updates.deleteLater()
