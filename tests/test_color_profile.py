@@ -87,7 +87,7 @@ def test_viewer_and_thumbnail_loads_are_colour_managed(tmp_path):
     Image.new("RGB", (8, 8), _P3_RED).save(path, icc_profile=DISPLAY_P3)
     expected = np.array(to_srgb(_p3_image()).getpixel((0, 0)))
     for arr in (load_image_file(str(path)), load_image_file(str(path), thumbnail=True),
-                LoadThumbnailWorker(str(path), size=4)._bake_fresh(None, "")):
+                LoadThumbnailWorker(str(path), size=4)._bake_fresh(None)):
         assert np.abs(arr[1, 1, :3].astype(int) - expected).max() <= 2
 
 
@@ -149,7 +149,7 @@ def test_viewer_and_thumbnail_loads_apply_a_grey_profile(tmp_path, suffix):
     path = tmp_path / f"scan{suffix}"
     Image.new("L", (16, 16), 128).save(path, icc_profile=_GAMMA_18)
     for arr in (load_image_file(str(path)), load_image_file(str(path), thumbnail=True),
-                LoadThumbnailWorker(str(path), size=8)._bake_fresh(None, "")):
+                LoadThumbnailWorker(str(path), size=8)._bake_fresh(None)):
         assert np.abs(arr[1, 1, :3].astype(int) - _MID_GREY_IN_SRGB).max() <= 2
 
 

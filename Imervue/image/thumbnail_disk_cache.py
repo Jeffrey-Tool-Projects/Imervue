@@ -189,9 +189,10 @@ class ThumbnailDiskCache:
             self._changed(name)
 
     @staticmethod
-    def _key(path: str, size: int, recipe_hash: str = "") -> str:
+    def _key(path: str, size: int, recipe_hash: str = "",
+             source_stat: os.stat_result | None = None) -> str:
         try:
-            st = Path(path).stat()
+            st = source_stat if source_stat is not None else Path(path).stat()
             is_raw = Path(path).suffix.lower() in RAW_EXTENSIONS
             version = _RAW_KEY_VERSION if is_raw else _KEY_VERSION
             raw = f"{version}|{path}|{st.st_mtime_ns}|{st.st_size}|{size}|{recipe_hash}"
@@ -203,9 +204,10 @@ class ThumbnailDiskCache:
     # Public API
     # --------------------------------------------------
 
-    def get(self, path: str, size: int, recipe_hash: str = "") -> np.ndarray | None:
+    def get(self, path: str, size: int, recipe_hash: str = "", *,
+            source_stat: os.stat_result | None = None) -> np.ndarray | None:
         """嘗試從磁碟讀取快取的縮圖，失效或不存在時回傳 None"""
-        key = self._key(path, size, recipe_hash)
+        key = self._key(path, size, recipe_hash, source_stat)
         if not key:
             return None
         name = f"{key}{_CACHE_EXT}"
@@ -260,9 +262,10 @@ class ThumbnailDiskCache:
             if old is not None:
                 self._total_bytes -= old[0]
 
-    def put(self, path: str, size: int, img_data: np.ndarray, recipe_hash: str = "") -> None:
+    def put(self, path: str, size: int, img_data: np.ndarray, recipe_hash: str = "", *,
+            source_stat: os.stat_result | None = None) -> None:
         """將縮圖寫入磁碟快取，必要時 evict 舊項目"""
-        key = self._key(path, size, recipe_hash)
+        key = self._key(path, size, recipe_hash, source_stat)
         if not key:
             return
         # Normalise to RGBA uint8 so PIL can always save as PNG without guessing.

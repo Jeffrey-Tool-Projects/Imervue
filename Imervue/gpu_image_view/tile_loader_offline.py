@@ -20,11 +20,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     from Imervue.gpu_image_view.gpu_image_view import GPUImageView
 
 
-def file_signature(path: str) -> tuple[int, int, str] | None:
+def file_signature(
+    path: str, source_stat: os.stat_result | None = None,
+) -> tuple[int, int, str] | None:
     """``(size, mtime_ns, suffix)`` of *path*, or None when it can't be stat'ed."""
     try:
         # *path* is the picture the viewer is showing, from the user's own folder.
-        st = os.stat(path)  # NOSONAR
+        st = source_stat if source_stat is not None else os.stat(path)  # NOSONAR
     except OSError:
         return None
     return (st.st_size, st.st_mtime_ns, Path(path).suffix.lower())
@@ -38,9 +40,9 @@ _landed_signatures: OrderedDict[str, tuple[int, int, str] | None] = OrderedDict(
 _landed_lock = threading.Lock()
 
 
-def note_landed_signature(path: str) -> None:
-    """On a worker thread: stat *path* now so the landing tile need not."""
-    sig = file_signature(path)
+def note_landed_signature(path: str, source_stat: os.stat_result | None = None) -> None:
+    """Record the version the worker decoded so a later edit triggers a reload."""
+    sig = file_signature(path, source_stat)
     with _landed_lock:
         _landed_signatures[path] = sig
         _landed_signatures.move_to_end(path)

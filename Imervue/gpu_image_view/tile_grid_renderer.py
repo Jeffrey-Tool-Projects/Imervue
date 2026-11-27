@@ -260,9 +260,6 @@ class TileGridRenderer:  # pragma: no cover - GL drawing path
         view._tile_draw_scale = viewport.draw_scale
         cell, cols = viewport.cell, viewport.cols
         scaled_tile = viewport.base * view._tile_draw_scale
-        if getattr(view, "_tile_queue", None) is not None:
-            from Imervue.gpu_image_view.tile_loader import pump_thumbnail_workers
-            pump_thumbnail_workers(view)
         view.tile_rects = []
         # Placeholders for tiles whose thumbnail hasn't arrived yet — rendered
         # as dark squares so the grid layout is visible immediately. Stored in
@@ -284,6 +281,9 @@ class TileGridRenderer:  # pragma: no cover - GL drawing path
         self._draw_selection_overlay()
         self._draw_focus_marker(cols, cell, scaled_tile, vw, vh)
         self._draw_drag_rect()
+        if getattr(view, "_tile_queue", None) is not None:
+            from Imervue.gpu_image_view.tile_loader import pump_thumbnail_workers
+            pump_thumbnail_workers(view, allow_lookahead=not self._upload_budget.deferred)
 
 
 def upload_minimap_texture(thumb) -> int:  # pragma: no cover - GL upload path

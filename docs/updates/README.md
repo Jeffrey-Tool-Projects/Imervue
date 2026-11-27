@@ -58,6 +58,7 @@ In the same commit: delete the item from `progress.md`, add a `#done` entry here
 
 | ID | Date | Title | Tags | Batch |
 |---|---|---|---|---|
+| U-20261127-01 | 2026-11-27 | Draw visible thumbnails before prefetch and PNG cache writes | #fix #performance #thumbnails | [2026-11.md](2026-11.md) |
 | U-20261126-08 | 2026-11-26 | Install Rigora inside a frozen build, verified | #done #rigora #packaging | [2026-11.md](2026-11.md) |
 | U-20261126-07 | 2026-11-26 | Move the wall's remaining GUI-thread work off it, and measure the fill | #fix #performance #thumbnails #snapshot | [2026-11.md](2026-11.md) |
 | U-20261126-06 | 2026-11-26 | Take the remaining delete work off the GUI thread | #fix #performance #delete | [2026-11.md](2026-11.md) |

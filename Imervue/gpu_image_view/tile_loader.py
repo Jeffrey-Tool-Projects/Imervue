@@ -127,7 +127,7 @@ def _spawn_thumbnail_workers(view: GPUImageView, gen: int) -> None:
     pump_thumbnail_workers(view)
 
 
-def pump_thumbnail_workers(view: GPUImageView) -> None:
+def pump_thumbnail_workers(view: GPUImageView, *, allow_lookahead: bool = False) -> None:
     """Admit viewport or explicit jobs only when a real worker slot is free."""
     queue = getattr(view, "_tile_queue", None)
     if queue is None or queue.generation != view._load_generation:
@@ -137,7 +137,7 @@ def pump_thumbnail_workers(view: GPUImageView) -> None:
         viewport_for(view), view.tile_cache, getattr(view, "tile_errors", {}),
         getattr(view, "offline_paths", set()), wall=getattr(view, "tile_grid_mode", True),
         hover=getattr(view, "_hover_tile_path", None),
-        full_resolution=view.thumbnail_size is None,
+        full_resolution=view.thumbnail_size is None, allow_lookahead=allow_lookahead,
     )
     slots = max(0, queue.limit - len(view.active_tile_workers))
     for path in paths[:slots]:

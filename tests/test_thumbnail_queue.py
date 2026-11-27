@@ -14,9 +14,7 @@ def test_normal_plan_has_no_work_objects_for_unvisited_rows_and_hover_wins():
     queue = ThumbnailQueue(images, 7, limit=2)
     paths = queue.plan(_viewport(), {}, {}, set(), hover="0")
     assert paths[0] == "0"
-    # Visible rows plus one screen (3 rows of 10) of look-ahead below them.
-    assert len(paths) <= 40 + 30
-    assert len(queue.requested) <= 40
+    assert len(paths) == len(queue.requested) == 30
     assert queue.generation == 7
     assert queue.active == {}
 
@@ -88,18 +86,21 @@ def test_progress_is_current_workload_not_all_unvisited_files():
     assert len(queue.requested) <= 50
 
 
-def test_lookahead_rows_follow_every_visible_tile_and_stay_within_one_screen():
+def test_lookahead_waits_for_visible_results_and_stays_within_one_screen():
     images = [str(i) for i in range(100_000)]
     queue = ThumbnailQueue(images, 1, limit=2)
     # 10 columns of 100 px, a 300 px viewport scrolled to row 50.
-    paths = queue.plan(_viewport(y=-5_000), {}, {}, set())
-    visible = {str(i) for i in _viewport(y=-5_000).indices()}
-    first_ahead = next(i for i, path in enumerate(paths) if path not in visible)
-    assert set(paths[:first_ahead]) == visible
-    rows = {int(path) // 10 for path in paths[first_ahead:]}
-    visible_rows = {int(path) // 10 for path in visible}
-    assert min(rows) >= min(visible_rows) - 3
-    assert max(rows) <= max(visible_rows) + 3
+    viewport = _viewport(y=-5_000)
+    visible = {str(i) for i in viewport.indices(buffer=0)}
+    assert set(queue.plan(viewport, {}, {}, set())) == visible
+    cache = dict.fromkeys(visible)
+    last = cache.popitem()[0]
+    queue.started(last, object())
+    assert queue.plan(viewport, cache, {}, set()) == []
+    assert queue.plan(viewport, cache, {last: "unreadable"}, set(), allow_lookahead=False) == []
+    paths = queue.plan(viewport, cache, {last: "unreadable"}, set())
+    rows = {int(path) // 10 for path in paths}
+    assert rows == {47, 48, 49, 53, 54, 55}
     # Look-ahead is spare work: progress still counts only what is on screen.
     assert queue.requested == visible
 
@@ -107,7 +108,9 @@ def test_lookahead_rows_follow_every_visible_tile_and_stay_within_one_screen():
 def test_lookahead_skips_cached_failed_and_offline_rows():
     images = [str(i) for i in range(200)]
     queue = ThumbnailQueue(images, 1)
-    first = queue.plan(_viewport(200), {}, {}, set())
+    viewport = _viewport(200)
+    visible = dict.fromkeys(queue.plan(viewport, {}, {}, set()))
+    first = [*visible, *queue.plan(viewport, visible, {}, set())]
     done = dict.fromkeys(first)
     assert not queue.plan(_viewport(200), done, {}, set())
     assert not queue.plan(_viewport(200), {}, done, set())
