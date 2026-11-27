@@ -62,6 +62,13 @@ class _FakeViewer:
         self.loaded = list(paths)
 
 
+@pytest.fixture(autouse=True)
+def _incremental_sync(monkeypatch):
+    from Imervue.gpu_image_view import tile_loader
+    monkeypatch.setattr(tile_loader, "sync_tile_grid_incremental",
+                        lambda viewer, paths: setattr(viewer, "loaded", list(paths)))
+
+
 @pytest.fixture
 def fake_ui(qapp):
     """A real QWidget that quacks like the main window for the dialog parent."""
@@ -122,9 +129,9 @@ def test_delete_rejects_removes_files_and_reloads_the_grid(
     assert not Path(paths[0]).exists()
     assert not Path(paths[1]).exists()
     assert all(Path(p).exists() for p in paths[2:])
-    # The grid is rebuilt from what survived.
+    # The deleted tiles leave the wall; the survivors keep theirs.
     assert fake_ui.viewer.loaded == paths[2:]
-    assert fake_ui.viewer.cleared is True
+    assert fake_ui.viewer.cleared is False
     assert fake_ui.viewer._unfiltered_images is None
     assert [kind for kind, _msg in fake_ui.toast.calls] == ["success"]
     dlg.deleteLater()

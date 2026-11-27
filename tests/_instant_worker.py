@@ -20,6 +20,8 @@ class InstantDeleteWorker:
         self._finished_cbs: list = []
         self.progress = SimpleNamespace(connect=self._progress_cbs.append)
         self.finished_with = SimpleNamespace(connect=self._finished_cbs.append)
+        # QThread.finished: the caller hooks deleteLater on it; nothing to free.
+        self.finished = SimpleNamespace(connect=lambda _callback: None)
         InstantDeleteWorker.created.append(self)
 
     def start(self) -> None:

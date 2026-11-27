@@ -41,6 +41,7 @@ import time
 
 from Imervue.gpu_image_view.texture_upload import prepare_rgba, upload_rgba_texture
 from Imervue.gpu_image_view.tile_focus import focus_ring_active, focus_tile_rect
+from Imervue.gpu_image_view.tile_textures import UploadBudget
 from Imervue.gpu_image_view.tile_viewport import base_tile_size, viewport_for
 from Imervue.gpu_image_view.view_animator import THUMB_FADE_MS, fade_opacity
 
@@ -107,6 +108,11 @@ class TileGridRenderer:  # pragma: no cover - GL drawing path
         if x1 <= 0 or x0 >= vw or y1 <= 0 or y0 >= vh:
             return
         view.tile_rects.append((x0, y0, x1, y1, path))
+        budget = getattr(self, "_upload_budget", None)
+        if (budget is not None and path not in view.tile_textures
+                and not budget.allow(getattr(img_data, "nbytes", 0))):
+            self._draw_placeholder(x0, y0, scaled_tile, vw, vh)
+            return
         if not view._ensure_tile_texture(path, img_data):
             return
         view.renderer.draw_textured_quad(
@@ -268,8 +274,11 @@ class TileGridRenderer:  # pragma: no cover - GL drawing path
         # 在迴圈外設定一次 GL 狀態，避免每張 tile 都重複呼叫
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         vw, vh = view.width(), view.height()
+        self._upload_budget = UploadBudget()
         for i in viewport.indices():
             self._draw_single(i, images[i], cols, cell, scaled_tile, vw, vh)
+        if self._upload_budget.deferred:
+            view.update()       # the tiles over this frame's budget upload next frame
 
         self._draw_grid_borders()
         self._draw_selection_overlay()

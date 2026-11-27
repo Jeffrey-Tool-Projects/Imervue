@@ -86,3 +86,38 @@ def test_a_folder_left_in_place_is_deleted_with_its_contents(tmp_path, monkeypat
     monkeypatch.setattr(notice, "_ask_to_delete_permanently", lambda *_args: True)
     assert notice.offer_permanent_delete(None, [str(folder)]) == [str(folder)]
     assert not folder.exists()
+
+
+class TestOfferPermanentDeleteAsync:
+    def test_nothing_to_ask_about_answers_at_once(self, monkeypatch):
+        monkeypatch.setattr(notice, "_ask_to_delete_permanently",
+                            lambda *_args: pytest.fail("nothing to ask"))
+        got = []
+        assert notice.offer_permanent_delete_async(None, [], got.append) is None
+        assert got == [[]]
+
+    def test_keeping_them_answers_at_once_and_touches_nothing(self, tmp_path, monkeypatch):
+        paths = _files(tmp_path, "a.jpg")
+        monkeypatch.setattr(notice, "_ask_to_delete_permanently", lambda *_args: False)
+        got = []
+        assert notice.offer_permanent_delete_async(None, paths, got.append) is None
+        assert got == [[]]
+        assert (tmp_path / "a.jpg").exists()
+
+    def test_deleting_runs_on_a_worker_and_reports_back(self, qapp, tmp_path, monkeypatch,
+                                                        pump_until, os_trash):
+        paths = _files(tmp_path, "a.jpg", "a.jpg.xmp")[:1]
+        monkeypatch.setattr(notice, "_ask_to_delete_permanently", lambda *_args: True)
+        got = []
+        worker = notice.offer_permanent_delete_async(None, paths, got.append)
+        assert worker is not None
+        gone = []
+        worker.destroyed.connect(lambda *_: gone.append(True))
+        try:
+            assert pump_until(lambda: got and gone)
+        finally:
+            if not gone:
+                worker.wait()
+        assert got == [paths]
+        assert list(tmp_path.iterdir()) == []
+

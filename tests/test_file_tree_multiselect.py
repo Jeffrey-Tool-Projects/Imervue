@@ -514,7 +514,8 @@ def test_menu_routes_single_when_one_row_selected(qapp, tmp_path, monkeypatch):
     tree.deleteLater()
 
 
-def test_what_the_bin_refused_goes_for_good_when_the_user_agrees(qapp, tmp_path, monkeypatch):
+def test_what_the_bin_refused_goes_for_good_when_the_user_agrees(qapp, tmp_path, monkeypatch,
+                                                                pump_until):
     """On a memory card the trash can't take a file; the tree only warned it couldn't delete."""
     from Imervue.gui import trash_failure_notice
 
@@ -525,6 +526,8 @@ def test_what_the_bin_refused_goes_for_good_when_the_user_agrees(qapp, tmp_path,
                         lambda _parent, paths: asked.append(list(paths)) or True)
     tree._delete_paths(files)  # noqa: SLF001
     assert asked == [files]
+    # The permanent delete runs on its own worker thread.
+    assert pump_until(lambda: not tree._trash_workers)  # noqa: SLF001
     assert not any(Path(path).exists() for path in files)
     assert "warning" not in [kind for kind, _msg in main.toast.calls]
     tree.deleteLater()

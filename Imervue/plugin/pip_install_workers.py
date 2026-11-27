@@ -169,14 +169,16 @@ class _InstallWorker(QThread):
     log = Signal(str)
     result_ready = Signal(bool, str)  # success, message
 
-    def __init__(self, pip_names: list[str], python_path: str):
+    def __init__(self, pip_names: list[str], python_path: str,
+                 install_args: tuple[str, ...] = ()):
         super().__init__()
         self._pip_names = pip_names
         self._python = python_path
+        self._install_args = tuple(install_args)
         self._proc = None
 
     def run(self):
-        extra_args = self._frozen_target_args()
+        extra_args = [*self._install_args, *self._frozen_target_args()]
         try:
             with tempfile.TemporaryDirectory(
                     prefix="imervue_pip_", ignore_cleanup_errors=True) as tmp:

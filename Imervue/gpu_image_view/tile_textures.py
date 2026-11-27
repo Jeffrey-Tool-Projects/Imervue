@@ -51,6 +51,35 @@ def ensure_tile_texture(view: GPUImageView, path: str, img_data) -> bool:
     return True
 
 
+# New tile textures uploaded in one frame, in source bytes. A scroll that
+# brings sixty fresh tiles on screen uploaded (and mip-mapped) all sixty
+# inside one paint; the rest now follow over the next frames.
+UPLOAD_BYTES_PER_FRAME = 16 * 1024 * 1024
+
+
+class UploadBudget:
+    """How many new texture bytes one paint may still upload.
+
+    The first upload of a frame is always allowed, so a single tile larger
+    than the budget (a full-resolution wall) still appears.
+    """
+
+    def __init__(self, limit: int = UPLOAD_BYTES_PER_FRAME) -> None:
+        self.limit = max(0, int(limit))
+        self.used = 0
+        self.uploads = 0
+        self.deferred = False
+
+    def allow(self, nbytes: int) -> bool:
+        """Spend *nbytes* if the frame still has room; otherwise note a deferral."""
+        if self.uploads and self.used + nbytes > self.limit:
+            self.deferred = True
+            return False
+        self.used += max(0, int(nbytes))
+        self.uploads += 1
+        return True
+
+
 def evict_if_needed(view: GPUImageView) -> None:
     """Evict off-screen tile textures when over the VRAM cap (pre-paint)."""
     if view._vram_usage <= view._vram_limit:

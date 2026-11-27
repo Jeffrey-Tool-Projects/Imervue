@@ -14,7 +14,7 @@ from Imervue.system.best_effort import best_effort
 from Imervue.gpu_image_view.actions.delete import commit_pending_deletions
 from Imervue.gui.file_tree_view import _FileTreeView, _next_duplicate_name  # noqa: F401  # _next_duplicate_name re-exported for tests
 from Imervue.gui.settings_notice import warn_if_settings_unreadable
-from Imervue.gui.trash_failure_notice import offer_permanent_delete
+from Imervue.gui.trash_failure_notice import finish_pending_commit, offer_permanent_delete
 from Imervue.gui.toast import ToastManager
 from Imervue.gui.background_jobs import drain_background_jobs
 from Imervue.gui.control_tooltips import enable_control_tooltips
@@ -357,6 +357,11 @@ class ImervueMainWindow(
             event.ignore()
             return
 
+        puppet = getattr(self, "puppet_workspace", None)
+        if puppet is not None and not puppet.confirm_discard_changes():
+            event.ignore()
+            return
+
         self._release_for_close()
         self._persist_for_close()
 
@@ -473,6 +478,8 @@ class ImervueMainWindow(
         with best_effort("write the user settings", _logger):
             write_user_setting()
 
+        with best_effort("finish the running deletion commit", _logger):
+            finish_pending_commit(self)
         with best_effort("commit pending deletions", _logger):
             offer_permanent_delete(self, commit_pending_deletions(self.viewer))
 

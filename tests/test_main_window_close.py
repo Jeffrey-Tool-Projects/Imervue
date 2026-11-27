@@ -67,6 +67,15 @@ def _close(window, event):
     rebound(window, event)
 
 
+def test_rigora_cancel_close_prevents_all_teardown():
+    from types import SimpleNamespace
+    log = []
+    window = _Window(log, set())
+    window.puppet_workspace = SimpleNamespace(confirm_discard_changes=lambda: False)
+    _close(window, _Rec(log, "event", set()))
+    assert log == ["event.ignore"]
+
+
 def _record_collaborators(monkeypatch, log, failing):
     for name in ("cancel_pending_save", "write_user_setting", "commit_pending_deletions",
                  "offer_permanent_delete", "drain_background_jobs", "drain_retiring_workers"):
@@ -218,6 +227,7 @@ def test_secondary_close_releases_only_its_owned_workspaces(monkeypatch):
     owner, survivor = _Window(log, set()), _Window(log, set())
     for window, prefix in ((owner, 'owner'), (survivor, 'survivor')):
         window.puppet_workspace = _Rec(log, prefix + '.puppet', set())
+        window.puppet_workspace.confirm_discard_changes = lambda: True
         window.pet_workspace = _Rec(log, prefix + '.pet', set())
     _close(owner, _Rec(log, 'event', set()))
     assert 'owner.puppet.shutdown' in log

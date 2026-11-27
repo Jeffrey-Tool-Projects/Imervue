@@ -36,7 +36,7 @@ Modify 明確區分覆寫原檔與另存副本，並顯示目的位置。裁切�
 
 狀態列可開啟 Background Jobs，並顯示執行中與失敗數量。Puppet 截圖及錄影會在其中保留輸出路徑或失敗詳情，之後仍可開啟成品或資料夾。錄影不提供不適用的重試操作。攝影機控制顯示實際啟動、運作、停止中與錯誤狀態，提供裝置選擇、重試及診斷；缺少依賴套件時才提供安裝。命令面板會說明指令不可用的原因，並優先排列最近或經常使用的指令。
 
-Puppet 與 Desktop Pet 現在使用外部 Rigora 套件。Imervue 保留分頁及既有 CLI/MCP 指令，但不再內建第二份動畫引擎。Rigora 目前是私人儲存庫，尚未公開發行套件。取得授權的相鄰 checkout 後，請在同一個 Python 環境執行 `python -m pip install "../Rigora[gui]"`，再重新啟動 Imervue。未安裝 Rigora 時，這些分頁會顯示安裝提示，Imervue 其他功能仍可使用。Rigora 自行管理設定與模型快取；首次嵌入啟動會匯入相關既有偏好，但不共用設定檔。 請另行安裝已授權的 Rigora checkout 或 wheel；公開消費端套件不宣告尚未發行的 Rigora 相依。公開的凍結執行檔不含私人 Rigora，除非建置時已提供。使用外部 pip 安裝 Rigora 無法將它加入既有凍結執行檔。
+Puppet 與 Desktop Pet 使用外部 Rigora 套件。Imervue 保留它們的分頁及既有 CLI/MCP 指令，但不內建第二份動畫執行環境。Rigora 由其公開儲存庫（https://github.com/Jeffrey-Tool-Projects/Rigora）發布，沒有 PyPI 版本。未安裝時，Puppet 與 Desktop Pet 分頁會顯示附有 **安裝 Rigora** 按鈕的提示：按鈕會下載固定在發行 commit 的 Rigora 0.1.1，以 `--no-deps` 安裝（Rigora 需要的套件都已是 Imervue 的相依套件），完成後立即開啟分頁。原始碼安裝與封裝執行檔都能使用，執行檔會把 Rigora 安裝到程式旁的 `lib/site-packages`。有 checkout 時，也可以在同一個 Python 環境執行 `python -m pip install "../Rigora[gui]"` 後重新啟動 Imervue。沒有 Rigora 時，Imervue 其餘功能仍可使用。Rigora 自行管理設定與模型快取；第一次嵌入啟動時會匯入相關的既有偏好設定，但不共用設定檔。
 
 ## 目錄
 

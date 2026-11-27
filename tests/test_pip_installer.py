@@ -212,3 +212,16 @@ def test_import_worker_reports_failure_without_false_success(qapp, caplog, monke
     (record,) = [r for r in caplog.records if "cannot import" in r.getMessage()]
     assert "broken_pkg" in record.getMessage()
     assert record.exc_info[0] is RuntimeError
+
+
+def test_install_args_follow_each_package(monkeypatch):
+    commands = []
+    monkeypatch.setattr(pip_installer._InstallWorker, "_run_with_live_output",
+                        lambda _self, cmd, timeout=600: commands.append(cmd) or 0)
+    monkeypatch.setattr(pip_installer._InstallWorker, "_frozen_target_args", lambda _self: [])
+    worker = pip_installer._InstallWorker(["rigora @ https://example.invalid/r.zip"],
+                                          "python.exe", ("--no-deps",))
+    worker.run()
+    worker.deleteLater()
+    [cmd] = commands
+    assert cmd[-2:] == ["rigora @ https://example.invalid/r.zip", "--no-deps"]

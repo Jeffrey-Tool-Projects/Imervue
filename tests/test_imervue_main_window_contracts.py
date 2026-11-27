@@ -247,9 +247,7 @@ class _NavWindow:
             clear_tile_grid=lambda: log.append("clear"),
             model=SimpleNamespace(images=["m.png"]),
         )
-        self._image_metadata_index = SimpleNamespace(
-            prime=lambda imgs, limit: log.append(("prime", list(imgs), limit)),
-        )
+        self._prime_metadata = lambda imgs, limit=512: log.append(("prime", list(imgs), limit))
         self._folder_view_sessions = {}
         self.filename_label = SimpleNamespace(setText=lambda t: log.append(("label", t)))
         if breadcrumb:

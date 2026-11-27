@@ -123,6 +123,10 @@ class ImageListView(ImageListKeyboardMixin, ImageListEditMixin, ImageListContext
         header = self.horizontalHeader()
         self._model.sort(header.sortIndicatorSection(), header.sortIndicatorOrder())
 
+    def remove_paths(self, paths) -> None:
+        """Drop *paths* from the list in place (a delete): no rebuild, no re-sort."""
+        self._model.remove_paths(paths)
+
     def refetch(self, paths) -> None:
         """Read *paths* again: they changed on disk (see :meth:`ImageListModel.refetch`)."""
         self._model.refetch(paths)

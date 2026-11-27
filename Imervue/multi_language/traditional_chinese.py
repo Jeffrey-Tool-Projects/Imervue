@@ -10,7 +10,8 @@ _NO_EXPORT_IMAGES = '沒有可匯出的圖片。'
 _EXPORT_FAILED = '匯出失敗：{err}'
 
 traditional_chinese_word_dict = {
-    "rigora_missing_notice": 'Puppet 與桌面寵物需要 Rigora。原始碼安裝請在同一個 Python 環境安裝已授權的 Rigora checkout 或 wheel，再重新啟動 Imervue。封裝執行檔必須使用建置時已包含 Rigora 的版本，無法透過外部 pip 加入。',
+    "rigora_missing_notice": 'Puppet 與桌面寵物需要 Rigora，目前尚未安裝。按「安裝 Rigora」會從 Rigora 的公開 GitHub 儲存庫下載 0.1.1 版並安裝，原始碼安裝與封裝執行檔都適用；安裝完成後分頁會直接開啟。',
+    "rigora_install_button": '安裝 Rigora',
     "heif_install_hint": "安裝 pillow-heif 以檢視 HEIC 影像。",
     "exif_location": "地點",
     "exif_coordinates": "座標",
@@ -298,6 +299,7 @@ traditional_chinese_word_dict = {
     "status_loading_progress": "載入中 {current}/{total}...",
     "status_loading_image": "載入圖片中...",
     "tile_wall_loading": "正在載入圖片...",
+    "tile_wall_loading_hint": '不用等縮圖載完：直接點左側「資料夾」面板裡的圖片，就能用 Deep Zoom 開啟。',
     "status_ready": "就緒",
     # Toast
     "toast_path_copied": "已複製路徑",

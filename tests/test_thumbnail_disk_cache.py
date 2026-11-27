@@ -1,6 +1,7 @@
 """Tests for the persistent thumbnail disk cache."""
 from __future__ import annotations
 
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -397,11 +398,13 @@ def test_failed_atomic_rewrite_keeps_previous_thumbnail(cache_dir, source_image,
     cache.put(source_image, 128, _thumb())
     assert cache.wait_ready(3)
     before = cache.total_bytes()
-    def fail(image, stage, **_kwargs):
-        Path(stage).write_bytes(b"partial")
+    real_write = Path.write_bytes
+    def fail(stage, data):
+        real_write(stage, b"partial")
         raise OSError("disk full")
-    monkeypatch.setattr(Image.Image, "save", fail)
+    monkeypatch.setattr(Path, "write_bytes", fail)
     cache.put(source_image, 128, _thumb(64))
+    monkeypatch.setattr(Path, "write_bytes", real_write)
     assert cache.get(source_image, 128).shape == (32, 32, 4)
     assert cache.total_bytes() == before
     assert len(list(cache_dir.iterdir())) == 1
@@ -479,3 +482,39 @@ def test_unexpected_inventory_error_is_logged_and_finishes(cache_dir, monkeypatc
     cache = tdc.ThumbnailDiskCache()
     assert cache.wait_ready(3)
     assert "inventory failed unexpectedly" in caplog.text
+
+
+def test_failed_encode_keeps_previous_thumbnail(cache_dir, source_image, monkeypatch):
+    cache = tdc.ThumbnailDiskCache()
+    cache.put(source_image, 128, _thumb())
+    assert cache.wait_ready(3)
+    before = cache.total_bytes()
+    def fail(_image, _fp, **_kwargs):
+        raise OSError("encoder broke")
+    monkeypatch.setattr(Image.Image, "save", fail)
+    cache.put(source_image, 128, _thumb(64))
+    monkeypatch.undo()
+    assert cache.get(source_image, 128).shape == (32, 32, 4)
+    assert cache.total_bytes() == before
+
+
+def test_png_encoding_happens_outside_the_cache_lock(cache_dir, source_image, monkeypatch):
+    cache = tdc.ThumbnailDiskCache()
+    assert cache.wait_ready(3)
+    real_save = Image.Image.save
+    held = []
+    def probe():
+        # RLock: the owning thread could re-enter, so ask from another thread.
+        acquired = cache._lock.acquire(blocking=False)
+        held.append(not acquired)
+        if acquired:
+            cache._lock.release()
+
+    def spy(image, fp, *args, **kwargs):
+        prober = threading.Thread(target=probe)
+        prober.start()
+        prober.join()
+        return real_save(image, fp, *args, **kwargs)
+    monkeypatch.setattr(Image.Image, "save", spy)
+    cache.put(source_image, 128, _thumb())
+    assert held == [False]

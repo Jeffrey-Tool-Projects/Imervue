@@ -22,7 +22,8 @@ _KOREAN_TRC0ACC6A9C79020C9 = '사용자 지정'
 _KOREAN_TRCC3DC5D020B9DECD = '창에 맞추기'
 
 korean_word_dict = {
-    "rigora_missing_notice": 'Puppet과 Desktop Pet에는 Rigora가 필요합니다. 소스 설치에서는 같은 Python 환경에 접근 권한이 있는 Rigora checkout 또는 wheel을 설치한 뒤 Imervue를 다시 시작하세요. 패키징 실행 파일은 빌드 시 Rigora가 포함된 버전이 필요하며 외부 pip로 추가할 수 없습니다.',
+    "rigora_missing_notice": 'Puppet과 Desktop Pet에는 Rigora가 필요하지만 설치되어 있지 않습니다. 「Rigora 설치」를 누르면 Rigora의 공개 GitHub 저장소에서 0.1.1 버전을 내려받아 설치합니다. 소스 설치와 패키징 실행 파일 모두에서 동작하며, 설치가 끝나면 탭이 바로 열립니다.',
+    "rigora_install_button": 'Rigora 설치',
     "heif_install_hint": "HEIC 이미지를 보려면 pillow-heif를 설치하세요.",
     "exif_location": "위치",
     "exif_coordinates": "좌표",
@@ -310,6 +311,7 @@ korean_word_dict = {
     "status_loading_progress": "로딩 중 {current}/{total}...",
     "status_loading_image": "이미지 로딩 중...",
     "tile_wall_loading": "이미지를 불러오는 중...",
+    "tile_wall_loading_hint": "썸네일을 기다리지 않아도 왼쪽 '폴더' 패널의 이미지를 클릭하면 바로 Deep Zoom으로 열 수 있습니다.",
     "status_ready": "준비 완료",
     # Toast
     "toast_path_copied": "경로가 복사되었습니다",

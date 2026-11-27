@@ -39,7 +39,8 @@ _ENGLISH_SATURATION = 'Saturation:'
 _ENGLISH_RADIUS_PX = 'Radius (px):'
 
 english_word_dict = {
-    "rigora_missing_notice": 'Puppet and Desktop Pet require Rigora. For a source installation, install an authorized Rigora checkout or wheel in the same Python environment, then restart Imervue. Packaged executables require a build that includes Rigora; external pip cannot add it.',
+    "rigora_missing_notice": 'Puppet and Desktop Pet require Rigora, which is not installed. Install Rigora downloads Rigora 0.1.1 from its public GitHub repository and installs it, in a source installation and in the packaged executable alike; the tabs open once it finishes.',
+    "rigora_install_button": 'Install Rigora',
     "heif_install_hint": "Install pillow-heif to view HEIC images.",
     "exif_location": "Location",
     "exif_coordinates": "GPS",
@@ -327,6 +328,7 @@ english_word_dict = {
     "status_loading_progress": "Loading {current}/{total}...",
     "status_loading_image": "Loading image...",
     "tile_wall_loading": "Loading images...",
+    "tile_wall_loading_hint": 'You can click an image in the Folders panel to open it in Deep Zoom now.',
     "status_ready": "Ready",
     # Toast
     "toast_path_copied": "Path copied",

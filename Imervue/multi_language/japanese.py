@@ -24,7 +24,8 @@ _JAPANESE_TR540D524D30925909 = '名前を変更'
 _JAPANESE_TR30B030E930C730FC = 'グラデーション'
 
 japanese_word_dict = {
-    "rigora_missing_notice": 'Puppet と Desktop Pet には Rigora が必要です。ソースから使用する場合は、同じ Python 環境にアクセス権のある Rigora checkout または wheel をインストールして Imervue を再起動してください。配布実行ファイルにはビルド時に Rigora を含める必要があり、外部の pip では追加できません。',
+    "rigora_missing_notice": 'Puppet と Desktop Pet には Rigora が必要ですが、インストールされていません。「Rigora をインストール」を押すと、Rigora の公開 GitHub リポジトリから 0.1.1 をダウンロードしてインストールします。ソースからのインストールでも配布実行ファイルでも使えます。完了するとタブがそのまま開きます。',
+    "rigora_install_button": 'Rigora をインストール',
     "heif_install_hint": "HEIC 画像を表示するには pillow-heif をインストールしてください。",
     "exif_location": "場所",
     "exif_coordinates": "座標",
@@ -312,6 +313,7 @@ japanese_word_dict = {
     "status_loading_progress": "読み込み中 {current}/{total}...",
     "status_loading_image": "画像を読み込み中...",
     "tile_wall_loading": "画像を読み込んでいます...",
+    "tile_wall_loading_hint": 'サムネイルを待たなくても、左の「フォルダー」パネルの画像をクリックすればすぐ Deep Zoom で開けます。',
     "status_ready": "準備完了",
     # Toast
     "toast_path_copied": "パスをコピーしました",

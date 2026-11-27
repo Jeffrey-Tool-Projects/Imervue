@@ -57,7 +57,9 @@ def _describe(x):
 def test_panel_frame(dlg):
     panel = _panel(dlg)
     assert panel is not None
-    assert panel.width() == dlg._RIGHT_PANEL_WIDTH  # noqa: SLF001
+    from Imervue.system.ui_scale import scaled_px
+    assert panel.width() >= scaled_px(dlg._RIGHT_PANEL_WIDTH)  # noqa: SLF001
+    assert panel.minimumWidth() == panel.maximumWidth()          # fixed, no jumping
     margins = panel.layout().contentsMargins()
     assert (margins.left(), margins.top(), margins.right(), margins.bottom()) == (12, 12, 12, 12)
     assert panel.layout().spacing() == 6

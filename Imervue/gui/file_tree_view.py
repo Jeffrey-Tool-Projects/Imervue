@@ -7,7 +7,7 @@ functions retain normal method dispatch, including instance and subclass overrid
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from PySide6.QtCore import QSignalBlocker, QSize, Qt, Signal
+from PySide6.QtCore import QSignalBlocker, QSize, Qt, QTimer, Signal
 from PySide6.QtWidgets import QFileSystemModel, QTreeView
 from Imervue.gui.file_tree_paths import _dedupe_paths, _next_duplicate_name, _partition_delete_batch
 from Imervue.gui.file_tree_preferences import sort_settings
@@ -110,6 +110,15 @@ class _FileTreeView(FileTreeSortMixin, QTreeView):
         # tree until restored or committed at shutdown; track what we hid so a
         # restore can un-hide exactly those rows.
         self._hidden_paths: set[str] = set()
+        # Whether a basename search has hidden rows that clearing it must show.
+        self._search_filtered = False
+        # QFileSystemModel reports each directory it finishes loading; a
+        # refresh or an expand-all reports dozens in one go. One deferred pass
+        # covers the whole burst instead of a full-tree walk per directory.
+        self._loaded_sync_timer = QTimer(self)
+        self._loaded_sync_timer.setSingleShot(True)
+        self._loaded_sync_timer.setInterval(0)
+        self._loaded_sync_timer.timeout.connect(self.apply_search_filter)
         # In-flight background trash workers — referenced here so they are
         # not garbage-collected mid-run; each self-evicts on finish.
         self._trash_workers: set = set()
@@ -132,8 +141,7 @@ class _FileTreeView(FileTreeSortMixin, QTreeView):
         # (re)loading, so navigating away and back keeps deleted folders hidden.
         loaded = getattr(model, "directoryLoaded", None)
         if loaded is not None:
-            loaded.connect(lambda _path: self.refresh_pending_hidden())
-            loaded.connect(lambda _path: self.apply_search_filter())
+            loaded.connect(lambda _path: self._loaded_sync_timer.start())
         with QSignalBlocker(self.header()):
             self._apply_tree_sort_from_settings()
         self._tree_state.bind_model(model)

@@ -53,6 +53,7 @@ from Imervue.gui.slider_spin import make_slider_spin
 from Imervue.multi_language.language_wrapper import language_wrapper
 from Imervue.system.qimage_convert import pil_to_qimage, qimage_to_pil
 from Imervue.system.best_effort import best_effort
+from Imervue.system.ui_scale import scaled_px, uniform_button_size
 
 logger = logging.getLogger("Imervue.annotation")
 
@@ -284,7 +285,6 @@ class AnnotationEditorWidget(AnnotationFileActionsMixin, QWidget):
         font = QFont(btn.font())
         font.setPointSize(self._TOOL_BTN_LABEL_POINT)
         btn.setFont(font)
-        btn.setFixedSize(self._TOOL_BTN_SIZE)
         return btn
 
     # ---------- Menu bar ----------
@@ -382,8 +382,6 @@ class AnnotationEditorWidget(AnnotationFileActionsMixin, QWidget):
         frame = QFrame(self)
         frame.setObjectName("annotationLeftToolbox")
         frame.setFrameShape(QFrame.Shape.NoFrame)
-        frame.setFixedWidth(self._LEFT_TOOLBOX_WIDTH)
-
         lay = QVBoxLayout(frame)
         lay.setContentsMargins(8, 10, 8, 10)
         lay.setSpacing(4)
@@ -405,6 +403,9 @@ class AnnotationEditorWidget(AnnotationFileActionsMixin, QWidget):
             lay.addWidget(btn, 0, Qt.AlignmentFlag.AlignHCenter)
             self._tool_buttons[tool] = btn
         self._tool_buttons["select"].setChecked(True)
+        size = uniform_button_size(list(self._tool_buttons.values()), self._TOOL_BTN_SIZE)
+        # The column is as wide as its buttons: a longer label widens it.
+        frame.setFixedWidth(max(scaled_px(self._LEFT_TOOLBOX_WIDTH), size.width() + 16))
 
         lay.addStretch(1)
         return frame
@@ -436,8 +437,6 @@ class AnnotationEditorWidget(AnnotationFileActionsMixin, QWidget):
         frame = QFrame(self)
         frame.setObjectName("annotationRightPanel")
         frame.setFrameShape(QFrame.Shape.NoFrame)
-        frame.setFixedWidth(self._RIGHT_PANEL_WIDTH)
-
         lay = QVBoxLayout(frame)
         lay.setContentsMargins(12, 12, 12, 12)
         lay.setSpacing(6)
@@ -488,6 +487,9 @@ class AnnotationEditorWidget(AnnotationFileActionsMixin, QWidget):
         lay.addLayout(sp_row)
 
         lay.addStretch(1)
+        # Fixed so the canvas does not jump, but never narrower than the
+        # longest label or button row in the active language.
+        frame.setFixedWidth(max(scaled_px(self._RIGHT_PANEL_WIDTH), lay.sizeHint().width()))
         return frame
 
     def _add_panel_header(self, frame: QFrame, lay: QVBoxLayout, lang) -> None:

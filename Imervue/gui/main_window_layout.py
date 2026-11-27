@@ -332,7 +332,7 @@ class MainWindowLayoutMixin:
 
     def _build_puppet_workspace(self) -> None:
         """The Puppet tab's 2D rigged-puppet workspace, in its page."""
-        if not optional_tabs.prepare_workspace(self._puppet_page):
+        if not optional_tabs.prepare_workspace(self._puppet_page, self._on_rigora_installed):
             return
         from rigora.puppet import PuppetWorkspace
         self.puppet_workspace = PuppetWorkspace(parent=self._puppet_page)
@@ -345,7 +345,7 @@ class MainWindowLayoutMixin:
         top-level window. The tray icon lets the user show or hide the pet
         without finding the tab, and exists only where the platform has a tray.
         """
-        if not optional_tabs.prepare_workspace(self._pet_page):
+        if not optional_tabs.prepare_workspace(self._pet_page, self._on_rigora_installed):
             return
         from rigora.desktop_pet import PetTrayIcon, PetWorkspace
         self.pet_workspace = PetWorkspace(parent=self._pet_page)
@@ -357,6 +357,18 @@ class MainWindowLayoutMixin:
         manager = getattr(self, "plugin_manager", None)
         if manager is not None:
             manager.connect_pet_hooks()
+
+    def _on_rigora_installed(self) -> None:
+        """Replace each optional tab's install notice with its workspace after an install."""
+        for page, workspace, build in (
+                (self._puppet_page, "puppet_workspace", self._build_puppet_workspace),
+                (self._pet_page, "pet_workspace", self._build_pet_workspace),
+        ):
+            if page is None:
+                continue
+            optional_tabs.clear_install_notice(page)
+            if getattr(self, workspace, None) is None:
+                build()
 
     def _build_status_bar(self) -> None:
         """Status bar with its info slots and the VRAM pressure indicator."""

@@ -165,6 +165,7 @@ def test_a_duplicate_the_bin_refused_goes_for_good_when_the_user_agrees(qapp, tm
 
     # The real worker's body, run inline: the trash itself has to refuse the file.
     monkeypatch.setattr(trash_ops.FileDeleteWorker, "start", lambda worker: worker.run())
+    monkeypatch.setattr(trash_ops.PermanentDeleteWorker, "start", lambda worker: worker.run())
     monkeypatch.setattr(trash_ops, "recycle_bin_holds", lambda _path: False)
     monkeypatch.setattr(
         QMessageBox, "question", lambda *a, **kw: QMessageBox.StandardButton.Yes)
@@ -209,7 +210,7 @@ def test_on_delete_finished_survives_a_deleted_item():
         _status_label=SimpleNamespace(setText=lambda _t: None),
         _lang={},
     )
-    DuplicateDetectionDialog._on_delete_finished(fake, ["a.png"], [])  # no crash
+    DuplicateDetectionDialog._finish_delete(fake, ["a.png"], [], [])  # no crash
     assert enabled == {"delete": True, "scan": True, "redundant": True}
     assert fake._pending_delete_items == {}
 

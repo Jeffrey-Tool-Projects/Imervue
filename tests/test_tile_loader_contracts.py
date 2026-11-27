@@ -245,6 +245,31 @@ class TestIncrementalSync:
         assert len(set(view.tile_cache.values())) == 2
 
 
+    def test_appended_images_keep_the_running_decodes(self):
+        view = _fake_view(["a.png", "b.png"])
+        tile_loader._spawn_thumbnail_workers(view, view._load_generation)
+        running = set(view.active_tile_workers)
+        assert running
+        tile_loader.sync_tile_grid_incremental(view, ["a.png", "b.png", "c.png"])
+        assert running <= view.active_tile_workers
+        assert view._load_generation == 1
+        assert all(not getattr(w, "aborted", False) for w in running)
+        assert sum(w.path == "a.png" for w in _FakeWorker.created) == 1
+
+    def test_a_removed_image_still_restarts_the_queue(self):
+        view = _fake_view(["a.png", "b.png"])
+        tile_loader._spawn_thumbnail_workers(view, view._load_generation)
+        tile_loader.sync_tile_grid_incremental(view, ["b.png", "c.png"])
+        assert view._load_generation == 2
+
+    def test_pure_additions_stat_nothing_for_rename_detection(self, monkeypatch):
+        from Imervue.gpu_image_view import tile_loader_sync
+        monkeypatch.setattr(tile_loader_sync, "file_signature",
+                            lambda _p: pytest.fail("no file may be stat'ed"))
+        view = _fake_view(["a.png"], cache={"a.png": 1})
+        tile_loader.sync_tile_grid_incremental(view, ["a.png", "b.png", "c.png"])
+        assert view.model.images == ["a.png", "b.png", "c.png"]
+
 class TestFolderSwitch:
     def test_load_resets_the_wall_and_reports_progress(self):
         progress: list = []

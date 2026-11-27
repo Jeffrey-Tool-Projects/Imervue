@@ -29,6 +29,7 @@ on every call.
 from __future__ import annotations
 
 import hashlib
+import io
 import logging
 import os
 import sys
@@ -280,12 +281,21 @@ class ThumbnailDiskCache:
             logger.debug(f"Thumbnail cache: cannot interpret array shape={shape}: {e}")
             return
 
+        # Encode before taking the lock: it is the slow part, and every
+        # thumbnail worker writes here, so encoding under the lock made the
+        # whole pool wait on one PNG at a time on a cold cache.
+        encoded = io.BytesIO()
+        try:
+            img.save(encoded, format="PNG", compress_level=1)
+        except (OSError, ValueError) as exc:
+            logger.debug("Failed to encode thumbnail cache: %s", exc)
+            return
+        data = encoded.getvalue()
         name = f"{key}{_CACHE_EXT}"
         cache_file = self._dir / name
         with self._lock:
             try:
-                replace_atomically(cache_file, lambda stage: img.save(
-                    stage, format="PNG", compress_level=1))
+                replace_atomically(cache_file, lambda stage: stage.write_bytes(data))
                 st = cache_file.stat()
             except (OSError, ValueError) as exc:
                 logger.debug("Failed to write thumbnail cache: %s", exc)
