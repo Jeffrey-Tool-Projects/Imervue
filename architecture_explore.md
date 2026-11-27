@@ -533,7 +533,7 @@ OpenGL 檢視器。`GPUImageView(QOpenGLWidget)`（351 行）只保留 GL 生命
 | `vram_detect.py` | 104 | 廠商 GL 探測實際 VRAM（`glGetIntegerv`） |
 | `memory_pressure.py` | 246 | 狀態列記憶體壓力指示器（綠/黃/紅 + 百分比，點擊清快取） |
 | `worker_pools.py` | 110 | 執行緒池分池策略：縮圖爆量不再和 deep-zoom worker 搶資源 |
-| `signal_coalescer.py` | 92 | 次幀 signal 合併，避免 N 個縮圖回呼各觸發一次進度更新 |
+| `signal_coalescer.py` | 74 | 持有單次觸發的 QTimer，在 GUI 執行緒合併同一幀的縮圖進度更新；計時器建立時連接回呼，強制更新時停止計時器 |
 | `cvd_view_mode.py` | 98 | 色覺障礙模擬（view-time 模組級開關，載入時套用） |
 
 #### `gpu_image_view/images/` — 載入層

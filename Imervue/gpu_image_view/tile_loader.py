@@ -112,8 +112,7 @@ def load_tile_grid_async(view: GPUImageView, image_paths) -> None:
     _spawn_thumbnail_workers(view, gen)
     start_offline_sweep(view)
 
-    if hasattr(view.main_window, "show_progress"):
-        view.main_window.show_progress(0, view._tile_load_total)
+    flush_thumbnail_progress(view)
     # 同步 list view（若處於 list 模式或之後會切換）
     if hasattr(view.main_window, "refresh_list_view"):
         with best_effort("refresh the list view"):
@@ -215,8 +214,10 @@ def _retry_thumbnail(
 
 
 def flush_thumbnail_progress(view: GPUImageView) -> None:
-    """Coalesced status-bar update — forwards the latest counter."""
-    if hasattr(view.main_window, "show_progress"):
+    """Report an unknown total only while the folder scan is running."""
+    if hasattr(view.main_window, "show_progress") and (
+        view._tile_load_total or getattr(view, "_folder_scan_active", False)
+    ):
         view.main_window.show_progress(view._tile_load_count, view._tile_load_total)
 
 

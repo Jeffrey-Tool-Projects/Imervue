@@ -12,7 +12,7 @@ GUI-thread cost during folder load.
 The coalescer pattern:
 
 1. Worker callback calls :meth:`schedule`.
-2. The first schedule arms a ``QTimer.singleShot(interval_ms, _flush)``.
+2. The first schedule starts the coalescer's single-shot timer.
 3. Subsequent schedules within the window are silent — the pending
    timer will flush once.
 4. :meth:`_flush` emits :attr:`flush_requested` on the GUI thread;
@@ -23,27 +23,16 @@ as the paint thread, so no visible lag from the user's perspective.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import QObject, Signal
-
-from Imervue.system.qt_timers import call_later
+from PySide6.QtCore import QObject, QTimer, Signal, Slot
 
 DEFAULT_INTERVAL_MS: int = 16
 """One frame at 60 Hz. Updates land in time for the next paint, the
 GUI thread stays under one bursty update per frame, and per-worker
-cost drops to a trivial flag check."""
+cost drops to a timer-state check."""
 
 
 class SignalCoalescer(QObject):
-    """Sub-frame coalescer. Wire :attr:`flush_requested` to the
-    expensive update, call :meth:`schedule` from anywhere — the
-    first call within each ``interval_ms`` window arms a delayed
-    flush, the rest are no-ops.
-
-    The coalescer is QObject-typed because the GUI-thread callback
-    needs Qt event-loop dispatch (QTimer.singleShot fires on the
-    receiver's thread); subscribers connect via the standard
-    signal API.
-    """
+    """Coalesce GUI-thread requests into one flush per timer window."""
 
     flush_requested = Signal()
 
@@ -53,23 +42,22 @@ class SignalCoalescer(QObject):
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
-        self._interval_ms = max(1, int(interval_ms))
-        self._pending: bool = False
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.setInterval(max(1, int(interval_ms)))
+        self._timer.timeout.connect(self._flush)
 
     def schedule(self) -> None:
         """Request a flush. Idempotent within one window — N
         calls between two timer fires produce one emit."""
-        if self._pending:
-            return
-        self._pending = True
-        # Fires on this object's thread, and is dropped if the coalescer is destroyed.
-        call_later(self._interval_ms, self, self._flush)
+        if not self._timer.isActive():
+            self._timer.start()
 
     def is_pending(self) -> bool:
         """``True`` when a flush is scheduled but hasn't fired
         yet. Useful for tests and for the rare caller that wants
         to early-out on already-pending state."""
-        return self._pending
+        return self._timer.isActive()
 
     def force_flush(self) -> None:
         """Bypass the timer — flush right now if anything is
@@ -77,16 +65,10 @@ class SignalCoalescer(QObject):
         burst (e.g. last thumbnail loaded) so the user sees the
         final state immediately instead of after the 16 ms
         window elapses."""
-        if not self._pending:
-            return
-        self._pending = False
-        self.flush_requested.emit()
+        if self._timer.isActive():
+            self._timer.stop()
+            self._flush()
 
+    @Slot()
     def _flush(self) -> None:
-        # The timer might fire after ``force_flush`` cleared the
-        # pending flag; in that case the flush has already
-        # happened and we skip a duplicate emit.
-        if not self._pending:
-            return
-        self._pending = False
         self.flush_requested.emit()
